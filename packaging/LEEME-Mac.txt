@@ -1,0 +1,39 @@
+BLADE RAIN para macOS (Intel y Apple Silicon)
+================================================
+
+Contenido
+---------
+  Blade Rain.app        La aplicación independiente.
+  Blade Rain.vst3       El plugin VST3.
+  Blade Rain.component  El plugin Audio Unit (Logic, GarageBand...).
+
+La primera vez
+--------------
+La app no está firmada con una cuenta de desarrollador de Apple, así que macOS la bloquea
+al abrirla con doble clic. Para abrirla:
+  - Arrastra "Blade Rain.app" a Aplicaciones.
+  - Clic derecho sobre ella > Abrir > Abrir.
+  - Si en macOS 15 o posterior no aparece la opción, ve a Ajustes del Sistema >
+    Privacidad y seguridad, baja hasta el aviso de "Blade Rain" y pulsa "Abrir igualmente".
+Alternativa en Terminal (quita la cuarentena):
+    xattr -cr "/Applications/Blade Rain.app"
+
+Instalar los plugins
+--------------------
+Copia los archivos en estas carpetas (Finder > Ir > Ir a la carpeta...):
+    Blade Rain.vst3       ->  ~/Library/Audio/Plug-Ins/VST3/
+    Blade Rain.component  ->  ~/Library/Audio/Plug-Ins/Components/
+Después quita la cuarentena en Terminal:
+    xattr -cr ~/Library/Audio/Plug-Ins/VST3/"Blade Rain.vst3"
+    xattr -cr ~/Library/Audio/Plug-Ins/Components/"Blade Rain.component"
+y vuelve a escanear plugins en tu DAW. Aparece como instrumento (Javhastudios > Blade Rain).
+
+Micrófono / vocoder
+-------------------
+El vocoder usa la ENTRADA DE AUDIO como micrófono:
+  - En la aplicación: en "Options" elige la tarjeta y su entrada, y desmarca "Mute audio
+    input" (viene silenciada por defecto para evitar acoples). Luego activa el tablet "Mic".
+    Usa auriculares: con altavoces el micro recoge el propio sonido.
+  - En el DAW (Ableton): en el plugin, envía la pista del micro por sidechain / entrada del
+    instrumento y activa el tablet "Mic". Asigna el Vocoder a Lower y/o Upper.
+  - La primera vez, macOS pedirá permiso para usar el micrófono: acéptalo.

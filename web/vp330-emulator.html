@@ -1,0 +1,2371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VP-330 emulator — prototipo Web Audio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'TR909';
+    src: url(data:font/ttf;base64,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Hh54/bwCMBQU/dACMP5IAbgUAhxkZB4UFB6MZAFUFDwUyIwUZBQAAAABADwAAAL4AhwADwAfuAAUK7oABQAMABcrALoACAAJABcrugAAAAEAFyswMQEVISIVERQzIRUhIjURNDMC+P3QFBQCMP28eHgCHGQU/tQUZGQBVGQAAAAAAQA8AAAC+AIcABEAV7gAFCu4ABIvuAAOL7gAEhC4AAjQuAAIL7gAANC4AA4QuAAB0LgADhC4AAPcuAAOELgABtC4AAgQuAAJ3LgAAxC4ABPcALoACwAGABcrugABABAAFyswMRMhMhURFCMhETMVITI1ETQjITwCRHh4/bx4AbgUFP3QAhxk/qxkAVTwFAEsFAAAAAEAPAAAAvgCHAATAC+4ABQrugAJABAAFyu4AAkQuAAE0AC6AAwADQAXK7oAAAABABcrugAGAAcAFyswMQEVISIdASEVIRUUMyEVISI1ETQzAvj90BQCRP28FAIw/bx4eAIcZBRQZHgUZGQBVGQAAAABADwAAAL4AhwADQAruAAUK7oACQAKABcruAAJELgABNAAuAAJL7oAAAABABcrugAGAAcAFyswMQEVISIdASEVIRUjETQzAvj90BQCRP28eHgCHGQUUGTwAbhkAAEAPAAAAvgCHAAVAF+4ABQruAAWL7gACC+4AA3cuAAA0LgAFhC4ABLQuAASL7gABdy4AAgQuAAP0LgABRC4ABDQuAAFELgAFdC4AA0QuAAX3AC6AAgADwAXK7oAAAABABcrugAMAAkAFyswMQEVISIVERQzITUjNSEVFCMhIjURNDMC+P3QFBQBuOYBXnj+NHh4AhxkFP7UFIxk8GRkAVRkAAAAAQA8AAAC+AIcAAsAU7gAFCu4AAwvuAADL7gADBC4AArQuAAKL7gACdy4AADQuAADELgABNy4AAMQuAAG0LgABBC4AA3cALgAAC+4AAMvuAAFL7gACS+6AAIABwAXKzAxExUhNTMRIzUhFSMRtAHMeHj+NHgCHMjI/eTw8AIcAAABACgAAACgAhwAAwAfuAAUK7oAAQACABcruAABELgABdwAuAABL7gAAC8wMRMRIxGgeAIc/eQCHAAAAAABACgAAALkAhwACQAjuAAUK7oAAQAAABcruAABELgAC9wAuAAAL7oABwAEABcrMDEBMxEUIyEnITI1Amx4eP40eAIwFAIc/khkZBQAAQA8AAAC+AIcAAwAMbgAFCu6AAEAAAAXK7gAARC4AArQALgAAC+4AAQvuAAHL7gACy+6AAYABwAAERI5MDETMxUzJTMJASMlIxUjPHhQAQS0/qwBkMj+rCh4AhzIyP78/ujw8AAAAAABADwAAAL4AhwACQAbuAAUK7oAAQAIABcrALgAAC+6AAQABQAXKzAxExEUMyEVISI1EbQUAjD9vHgCHP5cFGRkAbgAAAEAKAAAA4QCHAASAHe4ABQruAATL7gAEi+4ABMQuAAE0LgABC+4AAPcuAAH0LgAEhC4AA/cugAKAAQADxESObgAEhC4AA3QuAAPELgAFNwAuAAHL7gADS+4AAAvuAADL7gAEC+6AAIAAAAHERI5ugAKAAAABxESOboAEgAAAAcREjkwMSEjAREjETQzMhcbATYzMhcRIxECCGT+/Hh4PCjS0ig8dgJ4Abj+SAG4ZDz+mAFoPGT+SAG4AAAAAQA8AAAC+AIcAA8AW7gAFCu4ABAvuAAOL7gAAdy4AA4QuAAD0LgAEBC4AAjQuAAIL7gAB9y4AAvQuAABELgAEdwAuAADL7gABy+4AAAvuAALL7oABgADAAAREjm6AA4AAwAAERI5MDEBERQjIicBESMRNDMyFwERAvh4PCj+mHh4PCgBaAIc/khkKAGQ/kgBuGQo/nABuAACADwAAAL4AhwACwAXAFu4ABQruAAYL7gAFi+4ABgQuAAJ0LgACS+4ABDcuAAA0LgAFhC4AAHQuAAWELgAA9y4ABYQuAAG0LgAEBC4AAfQuAADELgAGdwAugATAAYAFyu6AAEADAAXKzAxEyEyFREUIyEiNRE0BSEiFREUMyEyNRE0tAHMeHj+NHgCMP5cFBQBpBQCHGT+rGRkAVRkZBT+1BQUASwUAAABADwAAAL4AhwAEQBbuAAUK7gAEi+4AA4vuAASELgACtC4AAovuAAA0LgADhC4AAHQuAAOELgAA9y4AA4QuAAG0LgAChC4AAfcuAADELgAE9wAuAAIL7oAAQAQABcrugALAAYAFyswMRMhMh0BFCMhFSMRITI9ATQjITwCRHh4/jR4AjAUFP3QAhxkZGTwAVQUPBQAAgA8AAAC+AIcAAsAGgCFuAAUK7gAGy+4ABkvuAAbELgACdC4AAkvuAAQ3LgAANC4ABkQuAAB0LgAGRC4AAPcuAAZELgABtC4ABAQuAAH0LoAEwAJAAMREjm6ABQACQADERI5uAADELgAHNwAugAVAAYAFyu6AAEADAAXK7gABhC4ABbcuAAS0LoAEwAGABUREjkwMRMhMhURFCMhIjURNAUhIhURFDMhJzMXMjURNLQBzHh4/jR4AjD+XBQUARhQjFAUAhxk/qxkZAFUZGQU/tQUZGQUASwUAAAAAAEAPAAAAxYCHAAYAHe4ABQruAAZL7gAFS+4ABkQuAAR0LgAES+4AADQuAAVELgAAdC4ABUQuAAD3LoABgAVAAMREjm4AAjQuAAVELgAC9C4ABEQuAAO3LgAAxC4ABrcALgACS+4AA8vugABABcAFyu6ABIADQAXK7oABgANABIREjkwMRMhMh0BFAcWFRcjJzQjIRUjESEyPQE0IyE8AkR4Hh4eeB4U/kh4AjAUFP3QAhxkZDIKFCjc3BTwAVQUPBQAAAABADwAAAL4AhwAGQAXuAAUKwC6AA8ADAAXK7oAAAABABcrMDEBFSEGFRQXBRYdARQjITUhNjU0JyUmPQE0MwL4/dAUFAGkjHj9vAIwFBT+XIx4AhxkChQUCngoPDxkZAoUFAp4KDw8ZAAAAAABABQAAALQAhwABwAjuAAUK7oABQAGABcrALgABS+6AAEAAAAXK7gAABC4AAPQMDETNSEVIREjERQCvP7eeAG4ZGT+SAG4AAABADwAAAL4AhwADwBHuAAUK7gAEC+4AA4vuAAB3LgADhC4AAPQuAAQELgABtC4AAYvuAAJ3LgABNC4AAEQuAAR3AC4AAAvuAAHL7oADAADABcrMDEBERQjISI1ETMRFDMhMjURAvh4/jR4eBQBpBQCHP5IZGQBuP5cFBQBpAAAAAEAFAAAAtACHAAJAB24ABQrALgAAi+4AAUvuAAIL7oABwACAAUREjkwMSUGIyInATMbATMBzBRGRhT+/IzS0owoKCgB9P5cAaQAAAABABQAAAOsAhwAFAA5uAAUKwC4AAcvuAAOL7gAAC+4AAMvuAASL7oAAgAHAAAREjm6AAsABwAAERI5ugAUAAcAABESOTAxATMbATMDBisBIicLAQYrASInAzMTAaR4jIx4oBQ8FDwUeHgUPBQ8FKB4jAIc/lwBpP4gPDwBVP6sPDwB4P5cAAAAAQAUAAAC+AIcAAsAF7gAFCsAuAAAL7gAAy+4AAYvuAAJLzAxEzMXNzMJASMnByMBFKDI3KD+1AEsoNzIoAEYAhzIyP7o/vy0tAEEAAEAFAAAAtACHAAIABu4ABQrugAGAAcAFysAuAAAL7gAAy+4AAYvMDETMxc3MwEVIzUUoL6+oP7eeAIcyMj+1PDwAAAAAQA8AAAC+AIcAA8AL7gAFCsAugAHAAgAFyu6AAIAAwAXK7gAAhC4AADQuAAIELgACtC4AAMQuAAO0DAxEyEzFRQHBSEVISM1NDcBITwCRHg8/fgCRP28eDwCCP28AhxkPB76ZGQyHgEEAAAAAgAUAAAC1AIcAAoADQAJALMDZAwAKzAxCQEjJyEHIwE2MzIPATMBzAEIkDL+wDKMAQQURkZGbtwB9P4MZGQB9Ch43AACADwAAAL4AhwAFAAcADNAFQkIBwQDBQJ4GxoZERAFDxMWeBQMBCsrAEASCwpkGBcFHBVkDg0FExJkAQAFKysrMDETITIdARQHFh0BFCMhESEyPQE0IyEFIRUhMj0BNDwCRHgeHnj9vAIwFBT90AIw/kgBuBQCHGRkHhQUHoxkAVQUPBTIjBRkFAAAAAEAPAAAAvgCHAAPAB23BQQDeA0MCworAEAMAgFkDw4FCglkBwYFKyswMQEVISIVERQzIRUhIjURNDMC+P3QFBQCMP28eHgCHGQU/tQUZGQBVGQAAAEAPAAAAvgCHAARACRADQQDAngODQwKCXgRBwQrKwBADAYFZAsKBRAPZAEABSsrMDETITIVERQjIREzFSEyNRE0IyE8AkR4eP28eAG4FBT90AIcZP6sZAFU8BQBLBQAAAEAPAAAAvgCHAATACRACQkIBAN4ERAPCysAQBACAWQTEgUODWQLCgUHZAUAKysrMDEBFSEiHQEhFSEVFDMhFSEiNRE0MwL4/dAUAkT9vBQCMP28eHgCHGQUUGR4FGRkAVRkAAABADwAAAL4AhwADQAatggEA3gLCgYrAEAKAgFkDQwFB2QFACsrMDEBFSEiHQEhFSEVIxE0MwL4/dAUAkT9vHh4AhxkFFBk8AG4ZAAAAQA8AAAC+AIcABUAK0AOBQQDeBMSEQoNDAB4CAIrKwBAEQIBZBUUBQlkCwAQDw5kBwYGKysrMDEBFSEiFREUMyE1IzUhFRQjISI1ETQzAvj90BQUAbjmAV54/jR4eAIcZBT+1BSMZPBkZAFUZAAAAAEAPAAAAvgCHAALABdACggAeAoBBHgGAgQrKwCzB2QBACswMRMVITUzESM1IRUjEbQBzHh4/jR4AhzIyP3k8PACHAAAAQAoAAAAoAIcAAMACbMAeAIAKwAwMRMRIxGgeAIc/eQCHAAAAQAoAAAC5AIcAAkAE7UCAXgJCAUrALUEA2QHBgUrMDEBMxEUIyEnITI1Amx4eP40eAIwFAIc/khkZBQAAQA8AAAC+AIcAAwAELQKAXgMASsAswlkAgArMDETMxUzJTMJASMlIxUjPHhQAQS0/qwBkMj+rCh4AhzIyP78/ujw8AABADwAAAL4AhwACQATtQEAeAgHBSsAtQYFZAMCBSswMRMRFDMhFSEiNRG0FAIw/bx4Ahz+XBRkZAG4AAABACgAAAOEAhwAEgAQQAkPeBEAAngFBAQrKwAwMSEjAREjETQzMhcbATYzMhcRIxECCGT+/Hh4PCjS0ig8dgJ4Abj+SAG4ZDz+mAFoPGT+SAG4AAABADwAAAL4AhwADwARQAoBAHgOAQZ4CQgEKysAMDEBERQjIicBESMRNDMyFwERAvh4PCj+mHh4PCgBaAIc/khkKAGQ/kgBuGQo/nABuAAAAAIAPAAAAvgCHAALABcAK0AQBAMCeBYVFAoQDw54CgkICisrAEAQBwYFZBMSEQoXDQxkCwEACisrMDETITIVERQjISI1ETQFISIVERQzITI1ETS0Acx4eP40eAIw/lwUFAGkFAIcZP6sZGQBVGRkFP7UFBQBLBQAAAEAPAAAAvgCHAARACRADQQDAngODQwKB3gRCQQrKwBADAYFZAsKBRAPZAEABSsrMDETITIdARQjIRUjESEyPQE0IyE8AkR4eP40eAIwFBT90AIcZGRk8AFUFDwUAAAAAAIAPAAAAvgCHAALABoAK0AQBAMCeBkYFwoQDw54CgkICisrAEAQBwYFZBYSEQoaDQxkCwEACisrMDETITIVERQjISI1ETQFISIVERQzISczFzI1ETS0Acx4eP40eAIw/lwUFAEYUIxQFAIcZP6sZGQBVGRkFP7UFGRkFAEsFAAAAQA8AAADFgIcABgAJkAPDngYEAQHBAMCeBUUEwsPKysAQAwNDGQSEQUXFmQBAAUrKzAxEyEyHQEUBxYVFyMnNCMhFSMRITI9ATQjITwCRHgeHh54HhT+SHgCMBQU/dACHGRkMgoUKNzcFPABVBQ8FAAAAAABADwAAAL4AhwAGQAeQBAEA3gXFQ0WDQoJCAB4ERAHKysAtAwLZA4BKzAxARUhBhUUFwUWHQEUIyE1ITY1NCclJj0BNDMC+P3QFBQBpIx4/bwCMBQU/lyMeAIcZAoUFAp4KDw8ZGQKFBQKeCg8PGQAAQAUAAAC0AIcAAcAELMEeAYAKwC0BwNkAQErMDETNSEVIREjERQCvP7eeAG4ZGT+SAG4AAEAPAAAAvgCHAAPAB1ADAEAeA4NBQkIeAYFBSsrALcEAwJkDAsKCiswMQERFCMhIjURMxEUMyEyNREC+Hj+NHh4FAGkFAIc/khkZAG4/lwUFAGkAAEAFAAAAtACHAAJAAMAMDElBiMiJwEzGwEzAcwURkYU/vyM0tKMKCgoAfT+XAGkAAEAFAAAA6wCHAAUAAMAMDEBMxsBMwMGKwEiJwsBBisBIicDMxMBpHiMjHigFDwUPBR4eBQ8FDwUoHiMAhz+XAGk/iA8PAFU/qw8PAHg/lwAAQAUAAAC+AIcAAsAAwAwMRMzFzczCQEjJwcjARSgyNyg/tQBLKDcyKABGAIcyMj+6P78tLQBBAABABQAAALQAhwACAAJswV4BwArADAxEzMXNzMBFSM1FKC+vqD+3ngCHMjI/tTw8AABADwAAAL4AhwADwARAEAKCQhkBgEOZAEABCsrMDETITMVFAcFIRUhIzU0NwEhPAJEeDz9+AJE/bx4PAII/bwCHGQ8HvpkZDIeAQQAAAAYASYAAQAAAAAAAAAiAAAAAQAAAAAAAQAGACwAAQAAAAAAAgAHACIAAQAAAAAAAwAGACwAAQAAAAAABAAGACwAAQAAAAAABQADACkAAQAAAAAABgAGACwAAQAAAAAABwAGACwAAQAABAkAAAAiAAAAAQAABAkAAQAGACwAAQAABAkAAgAHACIAAQAABAkAAwAGACwAAQAABAkABAAGACwAAQAABAkABQADACkAAQAABAkABgAGACwAAQAABAkABwAGACwAAwABBAkAAABEADIAAwABBAkAAQAMAIQAAwABBAkAAgAOAHYAAwABBAkAAwAMAIQAAwABBAkABAAMAIQAAwABBAkABQAGAJAAAwABBAkABgAMAIQAAwABBAkABwAMAIQoQykgMjAwMCBUYWthdG9zaGkgInRha2tlciIgIGthdG9oUmVndWxhcjEuMFRSLTkwOQAoAEMAKQAgADIAMAAwADAAIABUAGEAawBhAHQAbwBzAGgAaQAgACIAdABhAGsAawBlAHIAIgAgACAAawBhAHQAbwBoAFIAZQBnAHUAbABhAHIAVABSAC0AOQAwADkAMQAuADAAAgAAAAAAAP+gADAAAAAAAAAAAAAAAAAAAAAAAAAAAADdAAABAgADAAQABQAGAAcBAwAJAAoACwAMAA0ADgAPABAAEQASABMAFAAVABYAFwAYABkAGgAbABwAHQAeAB8AIAAhACIAIwAkACUAJgAnACgAKQAqACsALAAtAC4ALwAwADEAMgAzADQANQA2ADcAOAA5ADoAOwA8AD0APgA/AEAAQQBCAEMARABFAEYARwBIAEkASgBLAEwATQBOAE8AUABRAFIAUwBUAFUAVgBXAFgAWQBaAFsAXABdAF4AXwBgAGEArACjAIQAhQC9AJYA6ACGAI4AiwCdAKkApAEEAIoA2gCDAJMA8gDzAI0AlwCIAMMA3gDxAJ4AqgD1APQA9gCiAK0AyQDHAK4AYgBjAJAAZADLAGUAyADKAM8AzADNAM4A6QBmANMA0ADRAK8AZwDwAJEA1gDUANUAaADrAO0AiQBqAGkAawBtAGwAbgCgAG8AcQBwAHIAcwB1AHQAdgB3AOoAeAB6AHkAewB9AHwAuAChAH8AfgCAAIEA7ADuALoAsACxAOQA5QC7AOYA5wCmANgA2QCyALMAtgC3AMQAtAC1AMUAggDCAIcAqwDGAL4AvwEFAIwBBgROVUxMB3VuaTAwMjUHdW5pMDBBRARFdXJvB3VuaTIyMTkAAAAAAAIAGAAB//8AAw==) format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  :root{
+    --bg:            #17140f;
+    --panel-a:       #4c453c;
+    --panel-b:       #2b2620;
+    --wood-a:        #6b4226;
+    --wood-b:        #3d2410;
+    --orange:        #e8752c;
+    --orange-dim:    #a3521c;
+    --led-on:        #ffb020;
+    --led-off:       #3a2f22;
+    --cream:         #ece3d1;
+    --ink:           #201c17;
+    --brushed:       repeating-linear-gradient(100deg, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 3px);
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; background:var(--bg); color:var(--cream); font-family:'Oswald',sans-serif; }
+  body{ padding:24px 16px 48px; display:flex; justify-content:center; }
+
+  .unit{
+    width:fit-content; max-width:1170px;
+    background: linear-gradient(180deg,var(--wood-a),var(--wood-b));
+    border-radius:10px;
+    padding:14px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.55), inset 0 0 0 2px rgba(0,0,0,0.35);
+  }
+
+  .panel{
+    background: linear-gradient(180deg,var(--panel-a),var(--panel-b)), var(--brushed);
+    background-blend-mode: overlay;
+    border-radius:6px;
+    padding:18px 22px 22px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 2px 10px rgba(0,0,0,0.5);
+  }
+
+  .brand{
+    display:flex; align-items:baseline; justify-content:center;
+    border-bottom:2px solid rgba(236,227,209,0.15);
+    padding-bottom:10px; margin-bottom:16px;
+  }
+  .brand h1{
+    margin:0; font-weight:700; letter-spacing:1px; font-size:26px; color:var(--cream);
+    text-shadow: 0 1px 0 rgba(0,0,0,0.5);
+  }
+  .brand h1 span{ color:var(--orange); }
+  .brand small{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:2px; color:#b8ac93; text-transform:uppercase; }
+
+  .row{ display:flex; gap:0; flex-wrap:nowrap; align-items:flex-end; margin-bottom:14px; overflow-x:auto; padding-bottom:4px; }
+
+  .module{
+    background:rgba(0,0,0,0.22);
+    border-radius:0;
+    padding:10px 11px 12px;
+    box-shadow: inset -1px 0 0 rgba(232,117,44,0.28);
+    flex:0 0 auto;
+  }
+  .module:first-child{ border-top-left-radius:5px; border-bottom-left-radius:5px; }
+  .module:last-child{ border-top-right-radius:5px; border-bottom-right-radius:5px; box-shadow:none; }
+  .module h2{
+    margin:0 0 8px; font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    color:#c9bd9f; font-weight:600; font-family:'IBM Plex Mono',monospace;
+  }
+
+  /* tablet vertical, como los switches del panel real (empujar hacia abajo) */
+  .rocker{
+    display:inline-flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:6px;
+    background:transparent;
+    cursor:pointer;
+    user-select:none;
+    font-size:10px; letter-spacing:0.3px;
+    color:#cfc4a9;
+    transition: color .15s;
+  }
+  .rocker .dot{
+    width:20px; height:22px; border-radius:3px;
+    background:linear-gradient(180deg,#3a352b,#221e18);
+    border:1px solid rgba(0,0,0,0.7);
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.8), 0 1px 0 rgba(255,255,255,0.04);
+    transition: background .15s, box-shadow .15s;
+    position:relative;
+    flex-shrink:0;
+  }
+  .rocker .dot::before{
+    content:''; position:absolute; top:4px; left:50%; width:6px; height:6px; border-radius:50%;
+    background:var(--led-off); transform:translateX(-50%);
+    box-shadow: inset 0 0 2px rgba(0,0,0,0.8);
+    transition: background .15s, box-shadow .15s;
+  }
+  .rocker.on{ color:var(--cream); }
+  .rocker.on .dot{
+    background:linear-gradient(180deg,#e8752c,#a3521c);
+    box-shadow: inset 0 0 3px rgba(0,0,0,0.5), 0 0 6px 1px rgba(232,117,44,0.5);
+  }
+  .rocker.on .dot::before{
+    background:var(--led-on);
+    box-shadow: 0 0 5px 2px rgba(255,176,32,0.9), inset 0 0 2px rgba(0,0,0,0.4);
+  }
+  .rocker:active .dot{ transform:translateY(2px); }
+  .rocker-row{ display:flex; gap:10px; align-items:flex-start; }
+
+  .vslider-group{ display:flex; flex-direction:column; align-items:center; gap:5px; min-width:42px; }
+  .vslider-group label{
+    font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1px;
+    color:#b8ac93; text-transform:uppercase; text-align:center; white-space:nowrap;
+  }
+  /* fader vertical, como los del panel real */
+  input[type=range].vslider{
+    -webkit-appearance:none; appearance:none;
+    writing-mode: vertical-lr; direction: rtl;
+    width:6px; height:92px;
+    background:linear-gradient(180deg,#0c0a08,#1c1712);
+    border-radius:3px; outline:none; cursor:pointer;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 2px 6px rgba(0,0,0,0.6);
+  }
+  input[type=range].vslider::-webkit-slider-thumb{
+    -webkit-appearance:none; width:22px; height:13px;
+    background:linear-gradient(180deg,#efe6d3,#b9ac8e);
+    border:1px solid #000; border-radius:2px; cursor:pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  }
+  input[type=range].vslider::-moz-range-thumb{
+    width:22px; height:13px;
+    background:linear-gradient(180deg,#efe6d3,#b9ac8e);
+    border:1px solid #000; border-radius:2px; cursor:pointer;
+  }
+  input[type=range].vslider::-moz-range-track{ background:transparent; }
+  .knob-val{ font-family:'IBM Plex Mono',monospace; font-size:9px; color:#8f8570; white-space:nowrap; }
+
+  /* fader horizontal (p.ej. punto de corte, de 5 posiciones) */
+  input[type=range].hslider{
+    -webkit-appearance:none; appearance:none;
+    width:140px; height:6px;
+    background:linear-gradient(90deg,#0c0a08,#1c1712);
+    border-radius:3px; outline:none; cursor:pointer;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06), inset 0 2px 6px rgba(0,0,0,0.6);
+    margin-top:4px;
+  }
+  input[type=range].hslider::-webkit-slider-thumb{
+    -webkit-appearance:none; width:13px; height:22px;
+    background:linear-gradient(90deg,#efe6d3,#b9ac8e);
+    border:1px solid #000; border-radius:2px; cursor:pointer;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.6);
+  }
+  input[type=range].hslider::-moz-range-thumb{
+    width:13px; height:22px;
+    background:linear-gradient(90deg,#efe6d3,#b9ac8e);
+    border:1px solid #000; border-radius:2px; cursor:pointer;
+  }
+  input[type=range].hslider::-moz-range-track{ background:transparent; }
+
+  /* vocoder LED bargraph — signature element */
+  .vocoder-meter{
+    display:flex; gap:4px; align-items:flex-end; height:96px;
+    background:linear-gradient(180deg,#0d0b09,#171310);
+    border-radius:4px; padding:8px 10px 6px;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), inset 0 4px 10px rgba(0,0,0,0.6);
+  }
+  .band-col{ flex:1; display:flex; flex-direction:column-reverse; gap:2px; height:100%; }
+  .led-seg{
+    flex:1; border-radius:1px; background:var(--led-off);
+    transition: background-color .04s linear, box-shadow .04s linear;
+  }
+  .led-seg.lit{ background:var(--led-on); box-shadow:0 0 5px 1px rgba(255,176,32,0.85); }
+  .led-seg.lit.hot{ background:#ff5a3c; box-shadow:0 0 6px 1px rgba(255,90,60,0.9); }
+  .band-freqs{ display:flex; gap:4px; margin-top:6px; }
+  .band-freqs span{
+    flex:1; text-align:center; font-family:'IBM Plex Mono',monospace; font-size:8px; color:#8f8570;
+  }
+
+  .hint{
+    display:none; /* ocultos visualmente a pedido, pero se mantienen en el c\u00f3digo */
+    font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:#a99b7c;
+    line-height:1.5; margin-top:6px;
+  }
+
+  /* keyboard */
+  .keyboard{
+    position:relative; height:120px; display:flex; margin-top:4px;
+    background:#0e0c0a; border-radius:4px; padding:6px 6px 0; overflow:hidden;
+  }
+  .white-key{
+    position:relative; flex:1; background:linear-gradient(180deg,#efe6d3,#d8cbac);
+    border:1px solid #3d372a; border-radius:0 0 4px 4px; margin-right:1px;
+    box-shadow: inset 0 -6px 8px rgba(0,0,0,0.12);
+  }
+  .white-key.active{ background:linear-gradient(180deg,var(--orange),#c85f1f); }
+  .black-key{
+    position:absolute; top:6px; width:5.5%; height:62%;
+    background:linear-gradient(180deg,#2a2620,#0c0a08);
+    border-radius:0 0 3px 3px; z-index:2;
+    box-shadow: 0 3px 4px rgba(0,0,0,0.5);
+  }
+  .black-key.active{ background:linear-gradient(180deg,var(--orange-dim),#5c3410); }
+
+  .footer-note{
+    margin-top:14px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:#87795c;
+    border-top:1px solid rgba(236,227,209,0.1); padding-top:10px; line-height:1.6;
+  }
+  .footer-note b{ color:var(--orange); }
+
+  .power-btn{
+    background:linear-gradient(180deg,#e8752c,#a3521c);
+    color:#1c1108; border:none; border-radius:4px; padding:10px 18px;
+    font-family:'Oswald',sans-serif; font-weight:600; letter-spacing:1px; font-size:13px;
+    cursor:pointer; text-transform:uppercase;
+    box-shadow: 0 3px 0 #6e380e, 0 4px 8px rgba(0,0,0,0.4);
+  }
+  .power-btn:active{ transform:translateY(2px); box-shadow: 0 1px 0 #6e380e; }
+  .power-btn[disabled]{ opacity:0.45; cursor:default; }
+  .status-line{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:#b8ac93; display:flex; align-items:center; gap:8px; }
+  .status-dot{ width:8px; height:8px; border-radius:50%; background:#5a2f2f; }
+  .status-dot.live{ background:#57c46b; box-shadow:0 0 6px 2px rgba(87,196,107,0.7); }
+
+  .select-group{ display:flex; flex-direction:column; gap:4px; min-width:118px; }
+  .select-group label{
+    font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1px;
+    color:#b8ac93; text-transform:uppercase;
+  }
+  .select-group select{
+    background:#1c1712; color:var(--cream); border:1px solid rgba(255,255,255,0.12);
+    border-radius:4px; padding:6px 8px; font-family:'IBM Plex Mono',monospace; font-size:11px;
+    cursor:pointer;
+  }
+  .split-marker{
+    position:absolute; top:0; bottom:0; width:2px; background:var(--orange);
+    box-shadow:0 0 6px 1px rgba(232,117,44,0.8); z-index:3; display:none; pointer-events:none;
+  }
+  .split-marker.visible{ display:block; }
+</style>
+</head>
+<body>
+
+<div class="unit">
+  <div class="panel">
+
+    <div class="brand">
+      <h1 style="font-family:'TR909','Oswald',sans-serif; letter-spacing:2px; font-size:52px;">VJ<span>-330</span></h1>
+      <small style="display:none;">— emulaci&oacute;n</small>
+      <small style="display:none;">PROTOTIPO WEB AUDIO · PRE-JUCE</small>
+    </div>
+
+    <div class="row">
+      <div class="module" style="flex:0 0 auto; display:flex; align-items:center; gap:12px;">
+        <button class="power-btn" id="powerBtn">Power on</button>
+        <div class="status-line"><span class="status-dot" id="powerDot"></span><span id="powerLabel">Apagado</span></div>
+      </div>
+
+      <div class="module" style="flex:0 0 auto;">
+        <h2>Teclado MIDI externo</h2>
+        <div style="display:flex; gap:8px; align-items:flex-end;">
+          <div class="select-group">
+            <label>Dispositivo MIDI</label>
+            <select id="midiDeviceSelect">
+              <option value="">Sin dispositivos</option>
+            </select>
+          </div>
+          <div class="status-line"><span class="status-dot" id="midiInDot"></span><span id="midiInStatus">MIDI no disponible</span></div>
+        </div>
+      </div>
+
+      <div class="module" style="flex:0 0 auto;">
+        <h2>Entrada &amp; hold</h2>
+        <div style="display:flex; gap:8px; align-items:flex-end;">
+          <div class="rocker" id="toggleMic" style="opacity:0.5;"><span class="dot"></span>Mic</div>
+          <div class="rocker" id="toggleHold"><span class="dot"></span>Hold</div>
+          <div class="select-group">
+            <label>Entrada de audio</label>
+            <select id="micDeviceSelect">
+              <option value="">Predeterminada</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="module" style="flex:0 0 auto;">
+        <h2>Balance</h2>
+        <div style="display:flex; gap:8px;">
+          <div class="vslider-group">
+            <span class="knob-val" id="val-balanceMic">6.0</span>
+            <input type="range" class="vslider" id="balanceMic" min="0" max="10" step="0.1" value="6">
+            <label>Mic</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-balanceChoir">8.0</span>
+            <input type="range" class="vslider" id="balanceChoir" min="0" max="10" step="0.1" value="8">
+            <label>Voice</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-balanceStrings">8.0</span>
+            <input type="range" class="vslider" id="balanceStrings" min="0" max="10" step="0.1" value="8">
+            <label>Strings</label>
+          </div>
+        </div>
+        <div class="hint">Igual que en el hardware real, mezcla el mic&oacute;fono en crudo (sin vocoder), Human voice y Strings hacia la salida. El Vocoder no tiene fader aqu&iacute; en el original — su audibilidad depende solo de sus tablets Lower/Upper.</div>
+      </div>
+
+      <div class="module">
+        <h2>Release</h2>
+        <div style="display:flex; gap:8px;">
+          <div class="vslider-group">
+            <span class="knob-val" id="val-release">280 ms</span>
+            <input type="range" class="vslider" id="release" min="1" max="2000" value="280">
+            <label>Release</label>
+          </div>
+        </div>
+        <div class="hint">Este control es &uacute;nico y se comparte entre Strings, Human Voice <b>y Vocoder</b> &mdash; as&iacute; est&aacute; en el panel real (el manual oficial lo confirma expl&iacute;citamente). Con Release largo, si est&aacute;s usando el Vocoder record&aacute; seguir hablando al mic un rato despu&eacute;s de soltar la tecla.</div>
+      </div>
+
+      <div class="module">
+        <h2>Strings</h2>
+        <div style="display:flex; gap:8px;">
+          <div class="vslider-group">
+            <span class="knob-val" id="val-stringsAttack">40 ms</span>
+            <input type="range" class="vslider" id="stringsAttack" min="1" max="1200" value="40">
+            <label>Attack</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-tone">100%</span>
+            <input type="range" class="vslider" id="tone" min="0" max="100" value="100">
+            <label>Tone</label>
+          </div>
+        </div>
+        <div class="hint">Attack y Tone propios de Strings (controles ⑩ y ⑨ del panel real), independientes de Human Voice.</div>
+      </div>
+
+      <div class="module">
+        <h2>Human voice (Attack &amp; Vibrato)</h2>
+        <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1px; color:#b8ac93; text-transform:uppercase; margin-bottom:6px;">Upper</div>
+              <div class="rocker-row">
+                <div class="rocker on" id="voiceUpperMale8" data-variant="2"><span class="dot"></span>Male 8'</div>
+                <div class="rocker" id="voiceUpperFemale4" data-variant="3"><span class="dot"></span>Female 4'</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1px; color:#b8ac93; text-transform:uppercase; margin-bottom:6px;">Lower</div>
+              <div class="rocker-row">
+                <div class="rocker on" id="voiceLowerMale8" data-variant="0"><span class="dot"></span>Male 8'</div>
+                <div class="rocker" id="voiceLowerMale4" data-variant="1"><span class="dot"></span>Male 4'</div>
+              </div>
+            </div>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-attack">60 ms</span>
+            <input type="range" class="vslider" id="attack" min="1" max="1200" value="60">
+            <label>Attack</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-vibratoRate">5.3 Hz</span>
+            <input type="range" class="vslider" id="vibratoRate" min="1" max="9" step="0.1" value="5.3">
+            <label>Rate</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-vibratoDelay">150 ms</span>
+            <input type="range" class="vslider" id="vibratoDelay" min="0" max="600" value="150">
+            <label>Del</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-vibratoDepth">2.2 ct</span>
+            <input type="range" class="vslider" id="vibratoDepth" min="0" max="15" value="2.2">
+            <label>Depth</label>
+          </div>
+        </div>
+        <div class="hint">Lower y Upper tienen cada uno su propia voz activa, y pueden sonar A LA VEZ con timbres distintos (confirmado en el manual: cada mitad elige "the desired voice quality" de forma independiente; las service notes muestran un interlock de flip-flops D dentro de cada grupo, as&iacute; que solo una opci&oacute;n por grupo queda encendida a la vez). "Male 8'" es el mismo banco de filtros tanto en Lower como en Upper (misma tabla de service notes), pero cada instancia suena independiente. El Attack es propio de Human Voice, independiente del de Strings (confirmado en el manual). <b>Vib. delay</b> es el tiempo que tarda el vibrato en aparecer tras pulsar la nota.</div>
+      </div>
+
+      <div class="module">
+        <h2>Vocoder</h2>
+        <div style="display:flex; gap:8px;">
+          <div class="vslider-group">
+            <span class="knob-val" id="val-vocoderTone">70%</span>
+            <input type="range" class="vslider" id="vocoderTone" min="0" max="100" value="70">
+            <label>Tone</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-vocoderMicLevel">6.0</span>
+            <input type="range" class="vslider" id="vocoderMicLevel" min="0" max="10" step="0.1" value="6">
+            <label>M.Lev</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-noisegate">1.5%</span>
+            <input type="range" class="vslider" id="noisegate" min="0" max="15" step="0.5" value="1.5">
+            <label>Gate</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-noisemix">15%</span>
+            <input type="range" class="vslider" id="noisemix" min="0" max="100" value="15">
+            <label>S/N</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-sens">4</span>
+            <input type="range" class="vslider" id="sens" min="0" max="30" value="4">
+            <label>Sens</label>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:4px; justify-content:flex-end; padding-bottom:2px;">
+            <span class="status-dot" id="vocoderMicLedRed" style="background:#5a2f2f;"></span>
+            <span class="status-dot" id="vocoderMicLedGreen" style="background:#2f5a35;"></span>
+          </div>
+        </div>
+        <div class="hint">Controles reales del panel (⑯ Tone, ⑰ Mic Level, con indicadores rojo/verde) + tres del motor interno (no est&aacute;n en el hardware real): <b>Noise gate</b> &mdash; sub&iacute;lo si hay ruido de fondo en los silencios, baj&aacute;lo si corta tu voz. <b>Osc / Noise</b> &mdash; cu&aacute;nto ruido blanco se mezcla en el carrier (ayuda a las consonantes tipo "s"). <b>Sensitivity</b> &mdash; ganancia de la envolvente que sigue tu voz; si la sub&iacute;s mucho, un sostenido fuerte puede saturar y "pelear" contra el limitador (empez&aacute; bajo y and&aacute; subiendo de a poco). Regul&aacute; Mic Level para que el LED rojo casi no se encienda al hablar o cantar; Tone ajusta el brillo del sonido del vocoder. Internamente tambi&eacute;n hay un "High Sound Bypass Filter" (service notes) que reinyecta las frecuencias altas del mic (fricativas "s"/"sh") directo en la salida, sin pasar por las 10 bandas &mdash; as&iacute; se entienden mejor las consonantes, igual que en el hardware real. Solo se activa si el Vocoder est&aacute; asignado a alguna mitad del teclado (Lower/Upper).</div>
+      </div>
+
+      <div class="module">
+        <h2>Ensemble</h2>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <div class="vslider-group">
+            <span class="knob-val" id="val-ensemble">55%</span>
+            <input type="range" class="vslider" id="ensemble" min="0" max="100" value="55">
+            <label>Depth</label>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:6px; justify-content:flex-end;">
+            <div class="rocker on" id="toggleChoirEnsemble" style="padding:6px 10px; font-size:11px;"><span class="dot"></span>Voice&rarr;Ens.</div>
+            <div class="rocker" id="toggleVocoderEnsemble" style="padding:6px 10px; font-size:11px;"><span class="dot"></span>Vocoder&rarr;Ens.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="row">
+      <div class="module" style="flex:0 0 auto;">
+        <h2>Lower / Upper</h2>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="display:flex; gap:12px; align-items:flex-start;">
+            <div style="display:grid; grid-template-columns:auto auto auto; gap:6px 12px; font-size:11px; color:#888; align-items:center;">
+              <span></span><span style="text-align:center;">Lower</span><span style="text-align:center;">Upper</span>
+              <span>Strings</span>
+              <div class="rocker on" id="toggleStringsLower" style="padding:4px 14px; font-size:11px;"><span class="dot"></span></div>
+              <div class="rocker on" id="toggleStringsUpper" style="padding:4px 14px; font-size:11px;"><span class="dot"></span></div>
+              <span>Human voice</span>
+              <div class="rocker on" id="toggleChoirLower" style="padding:4px 14px; font-size:11px;"><span class="dot"></span></div>
+              <div class="rocker on" id="toggleChoirUpper" style="padding:4px 14px; font-size:11px;"><span class="dot"></span></div>
+              <span>Vocoder</span>
+              <div class="rocker" id="toggleVocoderLower" style="padding:4px 14px; font-size:11px;"><span class="dot"></span></div>
+              <div class="rocker" id="toggleVocoderUpper" style="padding:4px 14px; font-size:11px;"><span class="dot"></span></div>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <div class="vslider-group">
+                <span class="knob-val" id="val-lowerVolume">10.0</span>
+                <input type="range" class="vslider" id="lowerVolume" min="0" max="10" step="0.1" value="10">
+                <label>Lower vol</label>
+              </div>
+              <div class="vslider-group">
+                <span class="knob-val" id="val-upperVolume">10.0</span>
+                <input type="range" class="vslider" id="upperVolume" min="0" max="10" step="0.1" value="10">
+                <label>Upper vol</label>
+              </div>
+            </div>
+          </div>
+          <div>
+            <label style="font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1px; color:#b8ac93; text-transform:uppercase;">Punto de corte</label>
+            <input type="range" id="splitPoint" class="hslider" min="0" max="4" step="1" value="2">
+            <div style="display:flex; justify-content:space-between; width:140px; font-family:'IBM Plex Mono',monospace; font-size:9px; color:#8f8570; margin-top:2px;">
+              <span>F3</span><span>A3</span><span>C4</span><span>E4</span><span>G4</span>
+            </div>
+          </div>
+          <div class="hint" style="max-width:280px;">El teclado est&aacute; SIEMPRE dividido en Lower/Upper (como en el VP-330 real, fijo entre Do central y el Si anterior salvo que cambies el punto de corte). Cada secci&oacute;n puede sonar en ninguna, una o ambas mitades a la vez. <b>Lower vol / Upper vol</b> son un EXTRA del emulador &mdash; el hardware real no tiene control de volumen separado por mitad, solo el Balance general (Direct Mic/Human Voice/Strings).</div>
+        </div>
+      </div>
+
+      <div class="module" style="flex:0 0 auto;">
+        <h2>Pitch shift</h2>
+        <div style="display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;">
+          <div class="vslider-group">
+            <span class="knob-val" id="val-pitchTime">400 ms</span>
+            <input type="range" class="vslider" id="pitchTime" min="30" max="2000" value="400">
+            <label>Time</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-pitchTune">0 ct</span>
+            <input type="range" class="vslider" id="pitchTune" min="-50" max="50" value="0">
+            <label>Tune</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-pitchSet">4 st</span>
+            <input type="range" class="vslider" id="pitchSet" min="1" max="24" value="4">
+            <label>Pitch set</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-pitchShift">Normal</span>
+            <input type="range" class="vslider" id="pitchShift" min="0" max="100" value="0">
+            <label>Pitch shift</label>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div class="rocker" id="pitchModeAuto" data-mode="auto"><span class="dot"></span>Auto</div>
+            <div class="rocker on" id="pitchModeOff" data-mode="off"><span class="dot"></span>Off (ext cont)</div>
+            <div class="rocker" id="pitchModeManual" data-mode="manual"><span class="dot"></span>Manual</div>
+          </div>
+        </div>
+        <div class="hint">Afecta a las tres secciones a la vez (vocoder, human voice y strings), como en el hardware real. <b>Auto</b>: cada nota arranca "Pitch set" semitonos m&aacute;s grave y sube deslizando hasta su tono real en "Time" ms. <b>Manual</b>: mov&eacute; el fader "Pitch shift" hacia abajo para doblar el tono de las notas sostenidas en tiempo real (hasta "Pitch set" semitonos). <b>Off (ext cont)</b>: en el hardware real lo dispara un pedal DP-2 externo; ac&aacute; queda deshabilitado (no hay pedal). <b>Tune</b> es la afinaci&oacute;n general del instrumento, &plusmn;50 cents.</div>
+      </div>
+
+      <div class="module">
+        <h2>Delay ping-pong</h2>
+        <div style="display:flex; gap:8px;">
+          <div class="vslider-group">
+            <span class="knob-val" id="val-delayTime">350 ms</span>
+            <input type="range" class="vslider" id="delayTime" min="20" max="800" value="350">
+            <label>Time</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-delayFeedback">35%</span>
+            <input type="range" class="vslider" id="delayFeedback" min="0" max="90" value="35">
+            <label>Feedback</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-delayMix">0%</span>
+            <input type="range" class="vslider" id="delayMix" min="0" max="100" value="0">
+            <label>Mix</label>
+          </div>
+        </div>
+        <div class="hint">EXTRA del emulador (no est&aacute; en el VP-330 real). Rebota entre izquierda y derecha; sube Feedback para m&aacute;s repeticiones.</div>
+      </div>
+
+      <div class="module">
+        <h2>Reverb</h2>
+        <div style="display:flex; gap:8px;">
+          <div class="vslider-group">
+            <span class="knob-val" id="val-reverbSize">2.2 s</span>
+            <input type="range" class="vslider" id="reverbSize" min="0.3" max="6" step="0.1" value="2.2">
+            <label>Size</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-reverbTone">6.0k</span>
+            <input type="range" class="vslider" id="reverbTone" min="500" max="12000" value="6000">
+            <label>Tone</label>
+          </div>
+          <div class="vslider-group">
+            <span class="knob-val" id="val-reverbMix">0%</span>
+            <input type="range" class="vslider" id="reverbMix" min="0" max="100" value="0">
+            <label>Mix</label>
+          </div>
+        </div>
+        <div class="hint">EXTRA del emulador (no est&aacute; en el VP-330 real). Cola sint&eacute;tica generada por c&oacute;digo, no un IR de sala real.</div>
+      </div>
+
+      <div class="module">
+        <h2>Master</h2>
+        <div style="display:flex; gap:8px;">
+          <div class="vslider-group">
+            <span class="knob-val" id="val-master">70%</span>
+            <input type="range" class="vslider" id="master" min="0" max="100" value="70">
+            <label>Volume</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="module" style="flex:1 1 100%;">
+        <h2>Vocoder — banco de 10 bandas</h2>
+        <div class="vocoder-meter" id="meter"></div>
+        <div class="band-freqs" id="bandFreqs"></div>
+        <div class="hint">Activa <b>Mic</b>, mant&eacute;n una o varias notas del teclado (como el VP-330 original: se toca con la mano izquierda mientras se habla) y activa <b>Vocoder</b> para robotizar tu voz sobre el carrier del sintetizador.</div>
+      </div>
+    </div>
+
+    <div class="hint" style="margin-top:10px;">Teclado del ordenador: <b>Z</b> / <b>X</b> bajan/suben una octava — octava actual: <span id="octaveVal" style="color:var(--orange);">0</span></div>
+    <div class="keyboard" id="keyboard"></div>
+
+    <div class="row" style="margin-top:14px;">
+      <div class="module" style="flex:1 1 100%;">
+        <h2>Secuenciador MIDI (solo prototipo — no se porta a JUCE)</h2>
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+          <label class="power-btn" style="cursor:pointer;">
+            Cargar .mid
+            <input type="file" id="midiFile" accept=".mid,.midi" style="display:none;">
+          </label>
+          <button class="power-btn" id="midiPlay" disabled>&#9654; Reproducir</button>
+          <button class="power-btn" id="midiStop" disabled style="background:linear-gradient(180deg,#5a534a,#332f28);">&#9632; Stop</button>
+          <button class="power-btn" id="midiExport" disabled style="background:linear-gradient(180deg,#3f8f5c,#245c37);">&#8681; Exportar WAV</button>
+          <span class="status-line" id="midiStatus">Ning&uacute;n archivo cargado</span>
+        </div>
+        <div class="hint">La reproducci&oacute;n en vivo usa el motor actual tal cual (respeta split, Strings/Human voice/Vocoder activos, y el mic si lo tienes encendido). La <b>exportaci&oacute;n a WAV</b> se renderiza offline y por eso <b>no incluye el Vocoder</b> (necesita micr&oacute;fono en tiempo real) &mdash; exporta fielmente Strings y Human Voice con tus ajustes actuales de attack/release, ensemble, tono y voz.</div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <b>Notas de porting a JUCE:</b> DividerVoice → juce::dsp::Oscillator por voz + juce::dsp::Gain para la envolvente compartida · SectionFormant → juce::dsp::IIR::Filter (bandpass) en paralelo · VocoderBand → juce::dsp::IIR::Filter x2 (an&aacute;lisis/s&iacute;ntesis) + rectificador (WaveShaper) + juce::dsp::IIR lowpass o BallisticsFilter como envelope follower, conectando su salida a la ganancia de la banda de s&iacute;ntesis · EnsembleEffect → juce::dsp::DelayLine modulado por dos LFOs de fase distinta (o juce::dsp::Chorus como base).
+    </div>
+
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ============================================================
+  //  ESTADO GLOBAL
+  // ============================================================
+  let ctx = null;
+  let masterGain, ensembleInput, ensembleWet, ensembleDry, ensembleOut, toneFilter, dryBus;
+  let carrierBus, noiseSource, noiseGain;
+  let stringsChain, choirChainLower, choirChainUpper, vocoderChain;
+  let micDryGain; // monitor del mic en crudo (Balance → Direct Mic)
+  let pingPongFX, reverbFX; // EXTRA del emulador: efectos sobre la mezcla final
+  let vocoderMicGain, vocoderMicMeter; // control ⑰ Mic Level real del vocoder, con su LED
+  let vocoderMicMeterTimer = null;
+  const ensembleSends = {}; // paramKey -> {wet, dry} gain nodes, ver wireOptionalEnsemble
+
+  let midiData = null;       // { noteEvents, duration } — ver parseMidiFile
+  let midiFileName = '';
+  let playbackTimers = [];
+  let isPlaying = false;
+
+  let micOn = false, holdOn = false;
+  let micStream = null, micSourceNode = null; // para poder apagar el mic (cortar tracks + desconectar)
+  const activeVoices = new Map(); // midiNote -> {osc, gain, vibrato, vibratoDepth}
+  const heldToggle = new Set();   // notes latched via HOLD
+
+  const NUM_BANDS = 10;
+  const BAND_FREQS = [200, 280, 400, 600, 900, 1300, 2000, 2800, 4000, 6000]; // service notes VP-330
+  const bandNodes = []; // {analyser, ledEls[]}
+
+  // Pool COMPARTIDO de 7 filtros fijos para "human voice", seg\u00fan las service
+  // notes del VP-330 (Roland, sep. 1979, pp.7-12). Cada una de las 4 voces no
+  // tiene formantes propios: enciende un subconjunto de 4 de estos 7 filtros.
+  //
+  // NOTA DE FIDELIDAD: "Lower male (4')" y "Upper male (8')" activan EXACTAMENTE
+  // los mismos 4 filtros (230/600/900/2800 Hz) en el hardware real — Roland
+  // reutiliza el mismo banco porque ambas combinaciones caen en el mismo rango
+  // de frecuencias. El campo "trim" de abajo NO existe en el original: es una
+  // licencia art\u00edstica m\u00eda, opcional (ver toggle "Realce art\u00edstico"), para dar
+  // algo de personalidad propia a cada opci\u00f3n del men\u00fa incluso cuando comparten
+  // filtros. Con el toggle apagado, el emulador vuelve a la fidelidad estricta.
+  const CHOIR_FILTER_POOL = [200, 230, 600, 900, 1300, 2800, 3300]; // F1..F7 (Hz)
+  const CHOIR_VOICINGS = [
+    { name: "Lower male (8')",   indices: [0, 2, 3, 5], trim: { 0: 1.15, 2: 1.00, 3: 0.95, 5: 0.85 } },
+    { name: "Lower male (4')",   indices: [1, 2, 3, 5], trim: { 1: 1.15, 2: 1.05, 3: 0.95, 5: 0.75 } },
+    { name: "Upper male (8')",   indices: [1, 2, 3, 5], trim: { 1: 0.85, 2: 0.95, 3: 1.05, 5: 1.25 } },
+    { name: "Upper female (4')", indices: [2, 3, 4, 6], trim: { 2: 0.90, 3: 1.00, 4: 1.15, 6: 1.25 } }
+  ];
+
+  let params = {
+    attackMs: 60, // Human Voice: attack propio (control ⑫ del panel real)
+    stringsAttackMs: 40, // Strings: attack propio (control ⑩)
+    releaseMs: 280, // Release COMPARTIDO entre Strings, Human Voice y Vocoder (control ⑪ del panel real — confirmado en el manual oficial)
+    ensembleDepth: 0.55,
+    noiseMix: 0.15, sensitivity: 4, masterVol: 0.7, // motor interno, ya sin controles propios en UI (10 era demasiado sin l\u00edmite)
+    noiseGate: 0.015, // \u00eddem
+    // controles reales del panel (\u2076 Tone, \u2077 Mic Level, con LED rojo/verde)
+    vocoderTone: 70, vocoderMicLevel: 6,
+    splitPoint: 60,
+    // Lower/Upper independientes por secci\u00f3n (como en el VP-330 real):
+    stringsLower: true, stringsUpper: true,
+    choirLower: true, choirUpper: true,
+    vocoderLower: false, vocoderUpper: false,
+    // EXTRA del emulador (no est\u00e1 en el hardware real): balance de volumen Lower/Upper
+    lowerVolume: 10, upperVolume: 10,
+    // EXTRA del emulador: efectos sobre la mezcla final
+    delayTimeMs: 350, delayFeedback: 35, delayMix: 0,
+    reverbSize: 2.2, reverbTone: 6000, reverbMix: 0,
+    choirVariantLower: 0, choirVariantUpper: 2, vibratoRate: 5.3, vibratoDepth: 2.2, vibratoDelayMs: 150, toneCutoff: 9000,
+    choirToEnsemble: true, vocoderToEnsemble: false, voiceTrimOn: false, // realce artístico desactivado (a calibrar)
+    // Balance (0..10, como los faders del panel real): Direct Mic / Human Voice / Strings
+    balanceMic: 6, balanceChoir: 8, balanceStrings: 8,
+    // Pitch Shift: afecta a las 3 secciones a la vez, como en el hardware real
+    pitchTimeMs: 400, pitchTuneCents: 0, pitchSetSemitones: 4,
+    pitchMode: 'off', pitchManualAmount: 0 // 0..1, 0 = Normal, 1 = "Down" a fondo
+  };
+
+
+  // ============================================================
+  //  UTILIDADES
+  // ============================================================
+  function midiToFreq(m){ return 440 * Math.pow(2, (m - 69) / 12); }
+
+  function makeRectifierCurve(n = 1024){
+    const curve = new Float32Array(n);
+    for (let i = 0; i < n; i++){
+      const x = (i / (n - 1)) * 2 - 1;
+      curve[i] = Math.abs(x); // rectificador de onda completa
+    }
+    return curve;
+  }
+
+  function makeNoiseBuffer(){
+    const len = ctx.sampleRate * 2;
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+
+  // ============================================================
+  //  EFECTOS EXTRA (no est\u00e1n en el hardware real): Delay ping-pong y Reverb,
+  //  aplicados sobre la mezcla final completa del instrumento.
+  // ============================================================
+
+  // Delay ping-pong: dos l\u00edneas de delay cruzadas, cada una panorizada a un
+  // lado, que se retroalimentan entre s\u00ed (izq -> der -> izq -> ...), como
+  // el efecto cl\u00e1sico de "rebote" estereo.
+  function buildPingPongDelay(){
+    const input = ctx.createGain();
+    const output = ctx.createGain();
+    const dry = ctx.createGain();
+    dry.gain.value = 1;
+    const wet = ctx.createGain();
+    wet.gain.value = 0; // apagado por defecto
+
+    input.connect(dry);
+    dry.connect(output);
+
+    const delayL = ctx.createDelay(2.0);
+    const delayR = ctx.createDelay(2.0);
+    delayL.delayTime.value = 0.35;
+    delayR.delayTime.value = 0.35;
+
+    const feedbackL = ctx.createGain();
+    const feedbackR = ctx.createGain();
+    feedbackL.gain.value = 0.35;
+    feedbackR.gain.value = 0.35;
+
+    const panL = ctx.createStereoPanner(); panL.pan.value = -1;
+    const panR = ctx.createStereoPanner(); panR.pan.value = 1;
+
+    // entrada -> delay izq -> (sale panorizado a la izq) + (retroalimenta al delay der)
+    input.connect(delayL);
+    delayL.connect(panL);
+    panL.connect(wet);
+    delayL.connect(feedbackL);
+    feedbackL.connect(delayR);
+
+    // delay der -> (sale panorizado a la der) + (retroalimenta de vuelta al delay izq)
+    delayR.connect(panR);
+    panR.connect(wet);
+    delayR.connect(feedbackR);
+    feedbackR.connect(delayL);
+
+    wet.connect(output);
+
+    return { input, output, dry, wet, delayL, delayR, feedbackL, feedbackR };
+  }
+
+  // Genera una respuesta al impulso sint\u00e9tica (ruido con decaimiento
+  // exponencial, un poco distinto por canal para dar ancho estereo) en vez
+  // de depender de un archivo de IR externo, para que el emulador siga
+  // siendo un \u00fanico HTML autocontenido.
+  function makeImpulseResponse(durationSec, decayPower){
+    const sr = ctx.sampleRate;
+    const len = Math.max(1, Math.floor(sr * durationSec));
+    const impulse = ctx.createBuffer(2, len, sr);
+    for (let ch = 0; ch < 2; ch++){
+      const data = impulse.getChannelData(ch);
+      for (let i = 0; i < len; i++){
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decayPower);
+      }
+    }
+    return impulse;
+  }
+
+  function buildReverb(){
+    const input = ctx.createGain();
+    const output = ctx.createGain();
+    const dry = ctx.createGain();
+    dry.gain.value = 1;
+    const wet = ctx.createGain();
+    wet.gain.value = 0; // apagado por defecto
+
+    const convolver = ctx.createConvolver();
+    convolver.normalize = true;
+    const damp = ctx.createBiquadFilter(); // control de Tone (amortiguaci\u00f3n de agudos)
+    damp.type = 'lowpass';
+    damp.frequency.value = 6000;
+    damp.Q.value = 0.707;
+
+    input.connect(dry);
+    dry.connect(output);
+    input.connect(convolver);
+    convolver.connect(damp);
+    damp.connect(wet);
+    wet.connect(output);
+
+    convolver.buffer = makeImpulseResponse(2.2, 2.2);
+
+    return { input, output, dry, wet, convolver, damp };
+  }
+
+  // ============================================================
+  //  PARSER DE ARCHIVOS .mid (Standard MIDI File), sin dependencias
+  // ============================================================
+  function parseMidiFile(arrayBuffer){
+    const view = new DataView(arrayBuffer);
+    let pos = 0;
+    const u8 = () => view.getUint8(pos++);
+    const u16 = () => { const v = view.getUint16(pos); pos += 2; return v; };
+    const u32 = () => { const v = view.getUint32(pos); pos += 4; return v; };
+    const str = (n) => { let s = ''; for (let i = 0; i < n; i++) s += String.fromCharCode(u8()); return s; };
+    const varLen = () => { let value = 0, byte; do { byte = u8(); value = (value << 7) | (byte & 0x7f); } while (byte & 0x80); return value; };
+
+    if (str(4) !== 'MThd') throw new Error('No es un archivo MIDI v\u00e1lido (falta MThd)');
+    u32(); // longitud de cabecera, siempre 6
+    u16(); // formato (0/1/2), no lo necesitamos
+    const numTracks = u16();
+    const division = u16();
+    if (division & 0x8000) throw new Error('Divisi\u00f3n SMPTE no soportada en este prototipo');
+    const ticksPerQuarter = division;
+
+    const allEvents = []; // eventos crudos de todas las pistas, con tick absoluto
+    for (let t = 0; t < numTracks; t++){
+      if (str(4) !== 'MTrk') throw new Error('Cabecera de pista inv\u00e1lida');
+      const trackLen = u32();
+      const trackEnd = pos + trackLen;
+      let tick = 0, runningStatus = null;
+      while (pos < trackEnd){
+        tick += varLen();
+        let statusByte = u8();
+        if (statusByte < 0x80){ pos--; statusByte = runningStatus; }
+        else runningStatus = statusByte;
+
+        if (statusByte === 0xFF){
+          const metaType = u8();
+          const len = varLen();
+          if (metaType === 0x51 && len === 3){
+            const usPerQuarter = (u8() << 16) | (u8() << 8) | u8();
+            allEvents.push({ tick, type: 'tempo', usPerQuarter });
+          } else {
+            pos += len;
+          }
+        } else if (statusByte === 0xF0 || statusByte === 0xF7){
+          pos += varLen();
+        } else {
+          const type = statusByte & 0xF0;
+          if (type === 0x90 || type === 0x80){
+            const note = u8(), vel = u8();
+            allEvents.push({ tick, type: (type === 0x90 && vel > 0) ? 'on' : 'off', midi: note });
+          } else if (type === 0xC0 || type === 0xD0){
+            u8();
+          } else {
+            u8(); u8();
+          }
+        }
+      }
+      pos = trackEnd;
+    }
+
+    // mapa de tempo global (ticks -> segundos acumulados)
+    let tempoMap = allEvents.filter((e) => e.type === 'tempo').sort((a, b) => a.tick - b.tick);
+    if (!tempoMap.length || tempoMap[0].tick > 0) tempoMap = [{ tick: 0, usPerQuarter: 500000 }, ...tempoMap];
+    let accSec = 0;
+    const cum = tempoMap.map((seg, i) => {
+      if (i > 0){
+        const prev = tempoMap[i - 1];
+        accSec += (seg.tick - prev.tick) * (prev.usPerQuarter / 1e6) / ticksPerQuarter;
+      }
+      return { tick: seg.tick, accSec, usPerQuarter: seg.usPerQuarter };
+    });
+    function tickToSeconds(tick){
+      let seg = cum[0];
+      for (const c of cum){ if (c.tick <= tick) seg = c; else break; }
+      return seg.accSec + (tick - seg.tick) * (seg.usPerQuarter / 1e6) / ticksPerQuarter;
+    }
+
+    const noteEvents = allEvents
+      .filter((e) => e.type === 'on' || e.type === 'off')
+      .map((e) => ({ time: tickToSeconds(e.tick), type: e.type, midi: e.midi }))
+      .sort((a, b) => a.time - b.time);
+
+    const duration = noteEvents.length ? noteEvents[noteEvents.length - 1].time : 0;
+    return { noteEvents, duration };
+  }
+
+  // ============================================================
+  //  CODIFICADOR WAV (PCM 16-bit) a partir de un AudioBuffer
+  // ============================================================
+  function audioBufferToWav(buffer){
+    const numChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const numFrames = buffer.length;
+    const blockAlign = numChannels * 2;
+    const dataSize = numFrames * blockAlign;
+    const ab = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(ab);
+    const writeStr = (offset, s) => { for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); };
+
+    writeStr(0, 'RIFF'); view.setUint32(4, 36 + dataSize, true); writeStr(8, 'WAVE');
+    writeStr(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+    view.setUint16(22, numChannels, true); view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * blockAlign, true); view.setUint16(32, blockAlign, true); view.setUint16(34, 16, true);
+    writeStr(36, 'data'); view.setUint32(40, dataSize, true);
+
+    const channels = []; for (let c = 0; c < numChannels; c++) channels.push(buffer.getChannelData(c));
+    let offset = 44;
+    for (let i = 0; i < numFrames; i++){
+      for (let c = 0; c < numChannels; c++){
+        const sample = Math.max(-1, Math.min(1, channels[c][i]));
+        view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+        offset += 2;
+      }
+    }
+    return new Blob([ab], { type: 'audio/wav' });
+  }
+
+  // ============================================================
+  //  INICIALIZACION DEL GRAFO DE AUDIO
+  // ============================================================
+  function initAudio(){
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    masterGain = ctx.createGain();
+    masterGain.gain.value = params.masterVol;
+
+    // ---- EXTRA del emulador (no est\u00e1 en el hardware real): Delay ping-pong
+    //      y Reverb, sobre la mezcla final completa ----
+    pingPongFX = buildPingPongDelay();
+    reverbFX = buildReverb();
+    masterGain.connect(pingPongFX.input);
+    pingPongFX.output.connect(reverbFX.input);
+
+    // ---- limitador de seguridad: sin esto, si la suma de las 10 bandas del
+    //      vocoder (u otra cosa) se dispara por encima de 0dBFS en un
+    //      sostenido, el navegador/SO recorta de golpe y "pelea" para volver
+    //      \u2014 exactamente el s\u00edntoma de "se cae, vuelve con menos volumen,
+    //      se cae de nuevo". El limitador absorbe esos picos ANTES de que
+    //      lleguen a recortarse en destino. ----
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.value = -3;
+    limiter.knee.value = 0;
+    limiter.ratio.value = 20;
+    limiter.attack.value = 0.003;
+    limiter.release.value = 0.15;
+    reverbFX.output.connect(limiter);
+    limiter.connect(ctx.destination);
+
+    // ---- monitor directo del mic (Balance → Direct Mic), sin pasar por el
+    //      vocoder: arranca en 0, solo suena una vez el mic est\u00e9 activo ----
+    micDryGain = ctx.createGain();
+    micDryGain.gain.value = 0;
+    micDryGain.connect(masterGain);
+
+    // ---- control real ⑰ MIC LEVEL del vocoder: gana la se\u00f1al del mic antes
+    //      de entrar a los 10 filtros de an\u00e1lisis (no se conecta a nada de
+    //      salida directamente, solo alimenta el an\u00e1lisis + su LED) ----
+    vocoderMicGain = ctx.createGain();
+    vocoderMicGain.gain.value = params.vocoderMicLevel / 10 * 3; // 0..3 aprox., ver bindSlider
+    vocoderMicMeter = ctx.createAnalyser();
+    vocoderMicMeter.fftSize = 256;
+    startVocoderMicMeter();
+
+    // ---- bus de ensemble (BBD x2 en paralelo) ----
+    ensembleInput = ctx.createGain();
+    ensembleDry = ctx.createGain();
+    ensembleWet = ctx.createGain();
+    ensembleOut = ctx.createGain();
+
+    ensembleInput.connect(ensembleDry);
+    ensembleDry.connect(ensembleOut);
+
+    [0, 1].forEach((i) => {
+      const delay = ctx.createDelay(0.05);
+      delay.delayTime.value = 0.008 + i * 0.003;
+      const lfo = ctx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 0.35 + i * 0.22;
+      const lfoDepth = ctx.createGain();
+      lfoDepth.gain.value = 0.0025;
+      lfo.connect(lfoDepth);
+      lfoDepth.connect(delay.delayTime);
+      lfo.start();
+
+      const branchGain = ctx.createGain();
+      branchGain.gain.value = 1.0; // cada rama ya va sola a su canal (hard L/R);
+      // el 0.5 anterior era correcto cuando ambas ramas se sumaban en mono,
+      // pero paneadas hard L/R cada canal solo recibe UNA rama, as\u00ed que
+      // atenuarla a la mitad restaba volumen real al aumentar Depth
+
+      // cada BBD se reparte hard L/R \u2014 as\u00ed conseguimos el ancho estereo
+      // real del VP-330 (2 BBD por canal) en vez de sumarlo todo al centro
+      const panner = ctx.createStereoPanner();
+      panner.pan.value = i === 0 ? -1 : 1;
+
+      ensembleInput.connect(delay);
+      delay.connect(branchGain);
+      branchGain.connect(panner);
+      panner.connect(ensembleWet);
+    });
+
+    ensembleWet.connect(ensembleOut);
+    ensembleOut.connect(masterGain);
+    applyEnsembleDepth();
+
+    // ---- filtro de tono para strings (previo al ensemble) ----
+    toneFilter = ctx.createBiquadFilter();
+    toneFilter.type = 'lowpass';
+    toneFilter.frequency.value = params.toneCutoff;
+    toneFilter.Q.value = 0.707;
+    toneFilter.connect(ensembleInput);
+
+    // bus seco (sin ensemble) que suma directo a masterGain — usado cuando
+    // "choir/vocoder \u2192 ensemble" est\u00e1 desactivado
+    dryBus = ctx.createGain();
+    dryBus.connect(masterGain);
+
+    // ---- carrier del vocoder: se alimenta directamente de las voces
+    //      asignadas a "vocoder" (ver getDestinationsForMidi) + ruido ----
+    carrierBus = ctx.createGain();
+
+    noiseSource = ctx.createBufferSource();
+    noiseSource.buffer = makeNoiseBuffer();
+    noiseSource.loop = true;
+    noiseGain = ctx.createGain();
+    noiseGain.gain.value = params.noiseMix;
+    noiseSource.connect(noiseGain);
+    noiseGain.connect(carrierBus);
+    noiseSource.start();
+
+    // ---- STRINGS: heredado de las RS de Roland; siempre pasa por el
+    //      ensemble, como en el hardware real ----
+    stringsChain = buildFormantChain([
+      { freq: 850, q: 1.6, gain: 1.0 },
+      { freq: 2400, q: 1.8, gain: 0.6 }
+    ], 0.9);
+    stringsChain.output.connect(toneFilter);
+    stringsChain.gainNode.gain.value = 0;
+
+    // ---- HUMAN VOICE: DOS bancos de 7 filtros independientes (Lower y Upper),
+    //      as\u00ed pueden sonar voces distintas en cada mitad a la vez \u2014 en el
+    //      hardware real cada mitad elige su propia voz (Lower: Male 8'/Male 4',
+    //      Upper: Male 8'/Female 4'), confirmado en el manual y en las service
+    //      notes (cada grupo tiene su propio interlock de flip-flops). El
+    //      Ensemble es \u00fanico para toda la secci\u00f3n, sumando ambas mitades. ----
+    choirChainLower = buildChoirChain(0.8);
+    choirChainLower.gainNode.gain.value = 0;
+    choirChainUpper = buildChoirChain(0.8);
+    choirChainUpper.gainNode.gain.value = 0;
+    const choirSum = ctx.createGain();
+    choirChainLower.output.connect(choirSum);
+    choirChainUpper.output.connect(choirSum);
+    wireOptionalEnsemble(choirSum, 'choirToEnsemble');
+    updateChoirVariant(choirChainLower, params.choirVariantLower);
+    updateChoirVariant(choirChainUpper, params.choirVariantUpper);
+
+    // ---- vocoder: sin fader de Balance ni toggle maestro en el hardware
+    //      real \u2014 su audibilidad depende solo de los tablets Lower/Upper
+    //      (ver getDestinationsForMidi), as\u00ed que el nivel queda fijo ac\u00e1.
+    //      El ensemble tambi\u00e9n es opcional (por defecto apagado, para no
+    //      restar inteligibilidad a la voz) ----
+    vocoderChain = buildVocoder();
+    vocoderChain.gainNode.gain.value = 1.0;
+    wireOptionalEnsemble(vocoderChain.output, 'vocoderToEnsemble');
+
+    buildMeterUI();
+  }
+
+  // Conecta la salida de una secci\u00f3n a DOS caminos permanentes (ensemble
+  // h\u00famedo / bus seco) y cruza sus ganancias seg\u00fan el par\u00e1metro indicado,
+  // para poder activar/desactivar el chorus sin clics ni reconexiones.
+  function wireOptionalEnsemble(sourceNode, paramKey){
+    const wet = ctx.createGain();
+    const dry = ctx.createGain();
+    sourceNode.connect(wet);
+    sourceNode.connect(dry);
+    wet.connect(ensembleInput);
+    dry.connect(dryBus);
+    const on = params[paramKey];
+    wet.gain.value = on ? 1 : 0;
+    dry.gain.value = on ? 0 : 1;
+    ensembleSends[paramKey] = { wet, dry };
+  }
+
+  function setEnsembleSend(paramKey, on){
+    params[paramKey] = on;
+    const nodes = ensembleSends[paramKey];
+    if (!nodes || !ctx) return;
+    const now = ctx.currentTime;
+    nodes.wet.gain.cancelScheduledValues(now);
+    nodes.wet.gain.setTargetAtTime(on ? 1 : 0, now, 0.02);
+    nodes.dry.gain.cancelScheduledValues(now);
+    nodes.dry.gain.setTargetAtTime(on ? 0 : 1, now, 0.02);
+  }
+
+  function buildFormantChain(bands, driveLevel){
+    const input = ctx.createGain();
+    input.gain.value = driveLevel;
+    const sum = ctx.createGain();
+    const filters = []; // referencias para poder cambiar la variante en caliente
+    bands.forEach((b) => {
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = b.freq;
+      bp.Q.value = b.q;
+      const g = ctx.createGain();
+      g.gain.value = b.gain;
+      input.connect(bp);
+      bp.connect(g);
+      g.connect(sum);
+      filters.push(bp);
+    });
+    const gainNode = ctx.createGain(); // on/off + nivel de secci\u00f3n
+    gainNode.gain.value = 0;
+    sum.connect(gainNode);
+    return { input, output: gainNode, gainNode, filters };
+  }
+
+  // Construye los 7 filtros FIJOS de "human voice" (200/230/600/900/1300/
+  // 2800/3300 Hz). Cada filtro tiene su propia ganancia individual, que
+  // updateChoirVariant enciende o apaga seg\u00fan la voz elegida — el hardware
+  // real conmuta subconjuntos de este mismo banco, no cambia frecuencias.
+  function buildChoirChain(driveLevel){
+    const input = ctx.createGain();
+    input.gain.value = driveLevel;
+    const sum = ctx.createGain();
+    const filters = CHOIR_FILTER_POOL.map((freq) => {
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = freq;
+      bp.Q.value = 6.0;
+      const filterGain = ctx.createGain();
+      filterGain.gain.value = 0;
+      input.connect(bp);
+      bp.connect(filterGain);
+      filterGain.connect(sum);
+      return { freq, filterGain };
+    });
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = 0;
+    sum.connect(gainNode);
+    return { input, output: gainNode, gainNode, filters };
+  }
+
+  function updateChoirVariant(chain, idx){
+    if (!chain) return;
+    const voicing = CHOIR_VOICINGS[idx];
+    const now = ctx.currentTime;
+    chain.filters.forEach((f, i) => {
+      const active = voicing.indices.includes(i);
+      let target = 0;
+      if (active) target = params.voiceTrimOn ? (voicing.trim[i] ?? 1) : 1;
+      f.filterGain.gain.cancelScheduledValues(now);
+      f.filterGain.gain.setTargetAtTime(target, now, 0.02);
+    });
+  }
+
+  function makeGateCurve(threshold, n = 1024){
+    // recorta a 0 cualquier valor por debajo del umbral, sin reescalar el
+    // resto (NO dividir por (1-threshold): la envolvente real de una banda
+    // estrecha rara vez pasa de ~0.15-0.2, as\u00ed que asumir un m\u00e1ximo de 1
+    // aplastaba tambi\u00e9n la se\u00f1al real, no solo el ruido).
+    // WaveShaperNode siempre indexa su curva sobre el dominio [-1,1].
+    const curve = new Float32Array(n);
+    for (let i = 0; i < n; i++){
+      const x = (i / (n - 1)) * 2 - 1;
+      const v = Math.max(0, x);
+      curve[i] = v <= threshold ? 0 : v - threshold; // knee suave, sin p\u00e9rdida de rango
+    }
+    return curve;
+  }
+
+  function buildVocoder(){
+    const output = ctx.createGain();
+    const toneFilterV = ctx.createBiquadFilter(); // control ⑯ Tone del panel real
+    toneFilterV.type = 'lowpass';
+    toneFilterV.frequency.value = 9000;
+    toneFilterV.Q.value = 0.707;
+    const gainNode = ctx.createGain();
+    gainNode.gain.value = 0;
+    output.connect(toneFilterV);
+    toneFilterV.connect(gainNode);
+
+    // ---- "High Sound Bypass Filter" (service notes ⁴): las fricativas
+    //      ("s", "sh") no tienen tono musical, as\u00ed que el hardware real las
+    //      separa del propio mic con un filtro resonante y las reinyecta
+    //      directo en la salida, sin pasar por el an\u00e1lisis/s\u00edntesis de las
+    //      10 bandas (que no puede reproducirlas bien con un carrier con tono).
+    //      Se conecta al mic en connectMicToVocoder(); se suma ANTES del
+    //      Tone, junto con las 10 bandas, igual que en el circuito real. ----
+    const bypassFilter = ctx.createBiquadFilter();
+    bypassFilter.type = 'highpass';
+    bypassFilter.frequency.value = 4500;
+    bypassFilter.Q.value = 0.7;
+    const bypassGain = ctx.createGain();
+    bypassGain.gain.value = 0; // arranca en 0; se activa seg\u00fan Lower/Upper del vocoder
+    bypassFilter.connect(bypassGain);
+    bypassGain.connect(output);
+
+    const rectCurve = makeRectifierCurve();
+    const gateCurve = makeGateCurve(params.noiseGate);
+
+    for (let i = 0; i < NUM_BANDS; i++){
+      const f = BAND_FREQS[i];
+
+      // --- filtro de an\u00e1lisis (sobre la voz / mic) ---
+      const analysisFilter = ctx.createBiquadFilter();
+      analysisFilter.type = 'bandpass';
+      analysisFilter.frequency.value = f;
+      analysisFilter.Q.value = 3.0;
+
+      // --- seguidor de envolvente: rectificador + noise gate + lowpass ---
+      // el gate va ANTES del lowpass a prop\u00f3sito: as\u00ed sus transiciones
+      // bruscas de apertura/cierre quedan suavizadas por el propio filtro
+      // de envolvente en vez de generar clics.
+      const rectifier = ctx.createWaveShaper();
+      rectifier.curve = rectCurve;
+      rectifier.oversample = 'none';
+
+      const gate = ctx.createWaveShaper();
+      gate.curve = gateCurve;
+      gate.oversample = 'none';
+
+      const smoother = ctx.createBiquadFilter();
+      smoother.type = 'lowpass';
+      smoother.frequency.value = 22;
+      smoother.Q.value = 0.707;
+
+      const envMakeup = ctx.createGain();
+      envMakeup.gain.value = params.sensitivity;
+
+      analysisFilter.connect(rectifier);
+      rectifier.connect(gate);
+      gate.connect(smoother);
+      smoother.connect(envMakeup);
+
+      // analyser para el medidor LED
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 256;
+      smoother.connect(analyser);
+
+      // --- filtro de s\u00edntesis (sobre el carrier) ---
+      const synthFilter = ctx.createBiquadFilter();
+      synthFilter.type = 'bandpass';
+      synthFilter.frequency.value = f;
+      synthFilter.Q.value = 3.0;
+
+      const bandGain = ctx.createGain();
+      bandGain.gain.value = 0; // valor base; la envolvente lo modula por AudioParam
+
+      carrierBus.connect(synthFilter);
+      synthFilter.connect(bandGain);
+      bandGain.connect(output);
+
+      envMakeup.connect(bandGain.gain); // conexi\u00f3n audio -> AudioParam (suma)
+
+      bandNodes.push({ analyser, envMakeup, analysisFilter, gate, level: 0 });
+
+      // input de mic se conecta din\u00e1micamente a analysisFilter (ver enableMic)
+      bandNodes[i].analysisFilter = analysisFilter;
+    }
+
+    return { output, gainNode, toneFilter: toneFilterV, bypassFilter, bypassGain };
+  }
+
+  function connectMicToVocoder(micSource){
+    // control \u2077 Mic Level del panel real: gana/atenúa la se\u00f1al ANTES de
+    // que entre a los 10 filtros de an\u00e1lisis, y alimenta el meter LED
+    micSource.connect(vocoderMicGain);
+    bandNodes.forEach((b) => vocoderMicGain.connect(b.analysisFilter));
+    vocoderMicGain.connect(vocoderMicMeter);
+    vocoderMicGain.connect(vocoderChain.bypassFilter); // fricativas (ver buildVocoder)
+    micSource.connect(micDryGain); // monitor en crudo, para el fader "Direct Mic" del Balance
+    updateBalanceLevels();
+    updateVocoderBypassLevel();
+  }
+
+  // Activa el bypass de fricativas solo si el Vocoder est\u00e1 asignado a
+  // alguna mitad del teclado (si no, no tiene sentido que suene solo)
+  function updateVocoderBypassLevel(){
+    if (!ctx || !vocoderChain) return;
+    const active = params.vocoderLower || params.vocoderUpper;
+    vocoderChain.bypassGain.gain.cancelScheduledValues(ctx.currentTime);
+    vocoderChain.bypassGain.gain.setTargetAtTime(active ? 0.35 : 0, ctx.currentTime, 0.03);
+  }
+
+  // LEDs rojo/verde de Mic Level, como en el panel real: verde con se\u00f1al
+  // normal, rojo cuando se acerca a saturar (hay que bajar el fader si el
+  // rojo se enciende seguido, tal como indica el manual oficial)
+  function startVocoderMicMeter(){
+    if (vocoderMicMeterTimer) clearInterval(vocoderMicMeterTimer);
+    const data = new Uint8Array(vocoderMicMeter.fftSize);
+    vocoderMicMeterTimer = setInterval(() => {
+      vocoderMicMeter.getByteTimeDomainData(data);
+      let peak = 0;
+      for (let i = 0; i < data.length; i++){
+        const v = Math.abs(data[i] - 128) / 128;
+        if (v > peak) peak = v;
+      }
+      const red = document.getElementById('vocoderMicLedRed');
+      const green = document.getElementById('vocoderMicLedGreen');
+      if (red) red.style.background = peak > 0.85 ? '#e04b3a' : '#5a2f2f';
+      if (green) green.style.background = peak > 0.04 ? '#57c46b' : '#2f5a35';
+    }, 60);
+  }
+
+  // Aplica los tres faders de "Balance" (Direct Mic / Human Voice / Strings).
+  // Ya no hay un toggle maestro de secci\u00f3n: qu\u00e9 mitad del teclado alimenta
+  // cada cadena lo decide getDestinationsForMidi (tablets Lower/Upper) al
+  // conectar cada nota, as\u00ed que ac\u00e1 el fader es simplemente el nivel \u2014
+  // igual que en el hardware real.
+  function updateBalanceLevels(){
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    if (micDryGain){ micDryGain.gain.cancelScheduledValues(now); micDryGain.gain.setTargetAtTime(micOn ? params.balanceMic / 10 : 0, now, 0.02); }
+    if (choirChainLower){ choirChainLower.gainNode.gain.cancelScheduledValues(now); choirChainLower.gainNode.gain.setTargetAtTime(params.balanceChoir / 10, now, 0.03); }
+    if (choirChainUpper){ choirChainUpper.gainNode.gain.cancelScheduledValues(now); choirChainUpper.gainNode.gain.setTargetAtTime(params.balanceChoir / 10, now, 0.03); }
+    if (stringsChain){ stringsChain.gainNode.gain.cancelScheduledValues(now); stringsChain.gainNode.gain.setTargetAtTime(params.balanceStrings / 10, now, 0.03); }
+  }
+
+  function updateNoiseGate(threshold){
+    params.noiseGate = threshold;
+    if (!bandNodes.length) return;
+    const curve = makeGateCurve(threshold);
+    bandNodes.forEach((b) => { if (b.gate) b.gate.curve = curve; });
+  }
+
+  // ============================================================
+  //  VOCES (divider-oscillator paraf\u00f3nico simplificado)
+  // ============================================================
+
+  // Decide a qu\u00e9 buses (strings / choir / carrier del vocoder) debe sonar
+  // una nota. El teclado est\u00e1 SIEMPRE dividido en Lower/Upper (fiel al
+  // manual real, que no documenta un modo "sin split"). Cada secci\u00f3n puede
+  // sonar en ninguna, una o ambas mitades a la vez, seg\u00fan sus tablets
+  // Lower/Upper \u2014 no hay un toggle maestro aparte (tampoco existe en el
+  // hardware real: la audibilidad la dan Lower/Upper + los faders de Balance).
+  // "choir" indica adem\u00e1s 'lower' o 'upper' (o false), porque Human Voice
+  // tiene DOS cadenas de filtros independientes: pueden sonar voces distintas
+  // en cada mitad del teclado a la vez (confirmado en el manual oficial).
+  function getDestinationsForMidi(midi){
+    const lower = midi < params.splitPoint;
+    return {
+      strings: lower ? params.stringsLower : params.stringsUpper,
+      choir: lower ? (params.choirLower ? 'lower' : false) : (params.choirUpper ? 'upper' : false),
+      carrier: lower ? params.vocoderLower : params.vocoderUpper
+    };
+  }
+
+  function noteOn(midi){
+    if (activeVoices.has(midi)) return;
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth';
+    // TUNE: afinaci\u00f3n general del instrumento, \u00b150 cents (se aplica a la
+    // frecuencia base, no al detune, para no interferir con vibrato/pitch shift)
+    osc.frequency.value = midiToFreq(midi) * Math.pow(2, params.pitchTuneCents / 1200);
+    osc.start();
+
+    // PITCH SHIFT: afecta a las 3 secciones por igual, sobre el mismo
+    // par\u00e1metro detune que usa el vibrato (se suman, como en un sintetizador real)
+    const shiftCents = params.pitchSetSemitones * 100;
+    const now0 = ctx.currentTime;
+    if (params.pitchMode === 'auto'){
+      // arranca "pitch set" semitonos m\u00e1s grave y sube deslizando hasta la nota real
+      osc.detune.setValueAtTime(-shiftCents, now0);
+      osc.detune.linearRampToValueAtTime(0, now0 + params.pitchTimeMs / 1000);
+    } else if (params.pitchMode === 'manual'){
+      // arranca en la posici\u00f3n actual del fader "Pitch shift"
+      osc.detune.setValueAtTime(-shiftCents * params.pitchManualAmount, now0);
+    }
+
+    // vibrato con retardo de aparici\u00f3n (Vib. delay, como el "Delay Time" del panel real):
+    // arranca en 0 y sube a la profundidad configurada tras vibratoDelayMs
+    const vibrato = ctx.createOscillator();
+    vibrato.type = 'sine';
+    vibrato.frequency.value = params.vibratoRate;
+    const vibratoDepth = ctx.createGain();
+    vibratoDepth.gain.value = 0;
+    vibrato.connect(vibratoDepth);
+    vibratoDepth.connect(osc.detune);
+    vibrato.start();
+
+    const now = ctx.currentTime;
+    const delaySec = params.vibratoDelayMs / 1000;
+    vibratoDepth.gain.setValueAtTime(0, now);
+    vibratoDepth.gain.setValueAtTime(0, now + delaySec);
+    vibratoDepth.gain.linearRampToValueAtTime(params.vibratoDepth, now + delaySec + 0.08);
+
+    // routing seg\u00fan split: una nota puede alimentar 1, 2 o ninguna secci\u00f3n,
+    // cada una con su PROPIA envolvente (Strings y Human Voice ya no comparten
+    // attack/release \u2014 el vocoder no usa envolvente propia, sigue al mic)
+    const dest = getDestinationsForMidi(midi);
+    const gains = {};
+
+    // EXTRA del emulador (NO existe en el hardware real): balance de volumen
+    // entre Lower y Upper, para las 3 secciones por igual. En el VP-330
+    // original no hay control de volumen separado por mitad del teclado.
+    const zoneVol = (midi < params.splitPoint ? params.lowerVolume : params.upperVolume) / 10;
+
+    if (dest.strings){
+      const g = ctx.createGain();
+      g.gain.value = 0;
+      osc.connect(g); g.connect(stringsChain.input);
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.22 * zoneVol, now + params.stringsAttackMs / 1000);
+      gains.strings = g;
+    }
+    if (dest.choir){
+      const chain = dest.choir === 'lower' ? choirChainLower : choirChainUpper;
+      const g = ctx.createGain();
+      g.gain.value = 0;
+      osc.connect(g); g.connect(chain.input);
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.22 * zoneVol, now + params.attackMs / 1000);
+      gains.choir = g;
+    }
+    if (dest.carrier){
+      const g = ctx.createGain();
+      g.gain.value = 0;
+      osc.connect(g); g.connect(carrierBus);
+      // el carrier del vocoder no tiene ADSR propio en el hardware real (su
+      // amplitud la marca la envolvente del mic v\u00eda el an\u00e1lisis de bandas) \u2014
+      // solo una rampa m\u00ednima para evitar clics al pulsar la tecla
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.22 * zoneVol, now + 0.005);
+      gains.carrier = g;
+    }
+
+    activeVoices.set(midi, { osc, gains, vibrato, vibratoDepth });
+  }
+
+  // Actualiza en vivo el detune de las notas sostenidas cuando se mueve el
+  // fader "Pitch shift" en modo Manual (como doblar el pitch a mano en el
+  // hardware real, arrastrando el slider mientras la nota suena)
+  function updatePitchManual(){
+    if (!ctx || params.pitchMode !== 'manual') return;
+    const shiftCents = params.pitchSetSemitones * 100;
+    const now = ctx.currentTime;
+    activeVoices.forEach((v) => {
+      v.osc.detune.cancelScheduledValues(now);
+      v.osc.detune.setTargetAtTime(-shiftCents * params.pitchManualAmount, now, 0.01);
+    });
+  }
+
+  // Actualiza en vivo el volumen de zona (EXTRA del emulador) en las notas
+  // sostenidas, cuando se mueve "Lower vol" o "Upper vol" mientras se toca
+  function updateZoneVolume(){
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    activeVoices.forEach((voice, midi) => {
+      const zoneVol = (midi < params.splitPoint ? params.lowerVolume : params.upperVolume) / 10;
+      const target = 0.22 * zoneVol;
+      if (voice.gains.strings){ voice.gains.strings.gain.cancelScheduledValues(now); voice.gains.strings.gain.setTargetAtTime(target, now, 0.03); }
+      if (voice.gains.choir){ voice.gains.choir.gain.cancelScheduledValues(now); voice.gains.choir.gain.setTargetAtTime(target, now, 0.03); }
+      if (voice.gains.carrier){ voice.gains.carrier.gain.cancelScheduledValues(now); voice.gains.carrier.gain.setTargetAtTime(target, now, 0.01); }
+    });
+  }
+
+  function noteOff(midi){
+    const v = activeVoices.get(midi);
+    if (!v) return;
+    const now = ctx.currentTime;
+    const releaseSec = params.releaseMs / 1000; // control \u00fanico, compartido por las 3 secciones (ver manual oficial)
+
+    if (v.gains.strings){
+      const g = v.gains.strings;
+      g.gain.cancelScheduledValues(now);
+      g.gain.setValueAtTime(g.gain.value, now);
+      g.gain.linearRampToValueAtTime(0, now + releaseSec);
+    }
+    if (v.gains.choir){
+      const g = v.gains.choir;
+      g.gain.cancelScheduledValues(now);
+      g.gain.setValueAtTime(g.gain.value, now);
+      g.gain.linearRampToValueAtTime(0, now + releaseSec);
+    }
+    if (v.gains.carrier){
+      // el vocoder TAMBI\u00c9N usa el Release compartido (confirmado en el manual:
+      // "release can also be used with the Vocoder section" \u2014 por eso hay que
+      // seguir hablando al mic un rato despu\u00e9s de soltar la tecla si el
+      // Release es largo)
+      const g = v.gains.carrier;
+      g.gain.cancelScheduledValues(now);
+      g.gain.setValueAtTime(g.gain.value, now);
+      g.gain.linearRampToValueAtTime(0, now + releaseSec);
+    }
+
+    const stopAt = now + releaseSec + 0.05;
+    v.osc.stop(stopAt);
+    v.vibrato.stop(stopAt);
+    activeVoices.delete(midi);
+  }
+
+  // ============================================================
+  //  REPRODUCCI\u00d3N MIDI EN VIVO (usa el motor actual: split, secciones
+  //  activas, vocoder+mic si est\u00e1n encendidos) — timing por setTimeout,
+  //  suficiente para un prototipo aunque no sea sample-accurate.
+  // ============================================================
+  function playMidi(){
+    if (!ctx || !midiData || isPlaying) return;
+    isPlaying = true;
+    midiData.noteEvents.forEach((ev) => {
+      const id = setTimeout(() => {
+        if (ev.type === 'on') noteOn(ev.midi); else noteOff(ev.midi);
+      }, ev.time * 1000);
+      playbackTimers.push(id);
+    });
+    const endId = setTimeout(() => { isPlaying = false; updateMidiUI(); }, (midiData.duration + 0.6) * 1000);
+    playbackTimers.push(endId);
+    updateMidiUI();
+  }
+
+  function stopMidi(){
+    playbackTimers.forEach((id) => clearTimeout(id));
+    playbackTimers = [];
+    isPlaying = false;
+    Array.from(activeVoices.keys()).forEach((m) => noteOff(m));
+    updateMidiUI();
+  }
+
+  // ============================================================
+  //  EXPORTACI\u00d3N A WAV (renderizado offline). Solo Strings + Human
+  //  Voice: el Vocoder necesita mic en vivo, imposible en OfflineAudioContext,
+  //  as\u00ed que sus notas simplemente no suenan en el WAV exportado.
+  // ============================================================
+  async function exportMidiToWav(){
+    if (!ctx || !midiData) return;
+    const statusEl = document.getElementById('midiStatus');
+    statusEl.textContent = 'Renderizando\u2026';
+
+    const sampleRate = 44100;
+    const release = params.releaseMs / 1000; // compartido por Strings y Human Voice (y Vocoder en directo)
+    const totalSec = midiData.duration + release + 0.5;
+    const off = new OfflineAudioContext(2, Math.ceil(sampleRate * totalSec), sampleRate);
+
+    const oMaster = off.createGain(); oMaster.gain.value = params.masterVol; oMaster.connect(off.destination);
+    const oEnsembleInput = off.createGain();
+    const oEnsembleDry = off.createGain();
+    const oEnsembleWet = off.createGain();
+    oEnsembleInput.connect(oEnsembleDry); oEnsembleDry.connect(oMaster);
+    oEnsembleDry.gain.value = 1 - params.ensembleDepth * 0.5;
+    oEnsembleWet.gain.value = params.ensembleDepth;
+    [0, 1].forEach((i) => {
+      const delay = off.createDelay(0.05);
+      delay.delayTime.value = 0.008 + i * 0.003;
+      const lfo = off.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 0.35 + i * 0.22;
+      const lfoDepth = off.createGain(); lfoDepth.gain.value = 0.0025;
+      lfo.connect(lfoDepth); lfoDepth.connect(delay.delayTime); lfo.start(0);
+      const branch = off.createGain(); branch.gain.value = 1.0; // ver nota en initAudio
+      const panner = off.createStereoPanner(); panner.pan.value = i === 0 ? -1 : 1;
+      oEnsembleInput.connect(delay); delay.connect(branch); branch.connect(panner); panner.connect(oEnsembleWet);
+    });
+    oEnsembleWet.connect(oMaster);
+
+    const oTone = off.createBiquadFilter(); oTone.type = 'lowpass'; oTone.frequency.value = params.toneCutoff; oTone.Q.value = 0.707;
+    oTone.connect(oEnsembleInput);
+
+    // strings
+    const oStringsInput = off.createGain(); oStringsInput.gain.value = 0.9;
+    const oStringsSum = off.createGain();
+    [{ freq: 850, q: 1.6, gain: 1.0 }, { freq: 2400, q: 1.8, gain: 0.6 }].forEach((b) => {
+      const bp = off.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = b.freq; bp.Q.value = b.q;
+      const g = off.createGain(); g.gain.value = b.gain;
+      oStringsInput.connect(bp); bp.connect(g); g.connect(oStringsSum);
+    });
+    // nivel seg\u00fan el fader de Balance "Strings" (igual que en directo)
+    const oStringsGain = off.createGain(); oStringsGain.gain.value = params.balanceStrings / 10;
+    oStringsSum.connect(oStringsGain); oStringsGain.connect(oTone);
+
+    // human voice: DOS bancos independientes (Lower/Upper), igual que en directo
+    function buildOfflineChoir(idx){
+      const input = off.createGain(); input.gain.value = 0.8;
+      const sum = off.createGain();
+      const voicing = CHOIR_VOICINGS[idx];
+      CHOIR_FILTER_POOL.forEach((freq, i) => {
+        const bp = off.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = freq; bp.Q.value = 6.0;
+        const g = off.createGain();
+        const active = voicing.indices.includes(i);
+        g.gain.value = active ? (params.voiceTrimOn ? (voicing.trim[i] ?? 1) : 1) : 0;
+        input.connect(bp); bp.connect(g); g.connect(sum);
+      });
+      return { input, output: sum };
+    }
+    const oChoirLower = buildOfflineChoir(params.choirVariantLower);
+    const oChoirUpper = buildOfflineChoir(params.choirVariantUpper);
+    const oChoirSum = off.createGain();
+    oChoirLower.output.connect(oChoirSum);
+    oChoirUpper.output.connect(oChoirSum);
+    // nivel seg\u00fan el fader de Balance "Human voice" (igual que en directo)
+    const oChoirGain = off.createGain(); oChoirGain.gain.value = params.balanceChoir / 10;
+    oChoirSum.connect(oChoirGain);
+    if (params.choirToEnsemble) oChoirGain.connect(oTone); else oChoirGain.connect(oMaster);
+
+    // notas programadas con tiempos absolutos del propio OfflineAudioContext;
+    // Strings y Human Voice tienen su propio Attack pero comparten el Release
+    // (igual que en directo y como confirma el manual oficial)
+    // (el Vocoder no se exporta: necesita mic en tiempo real, ver el hint de la UI)
+    const active = new Map();
+    const stringsAttack = params.stringsAttackMs / 1000;
+    const choirAttack = params.attackMs / 1000;
+    const vibratoDelay = params.vibratoDelayMs / 1000;
+    midiData.noteEvents.forEach((ev) => {
+      if (ev.type === 'on'){
+        if (active.has(ev.midi)) return;
+        const osc = off.createOscillator(); osc.type = 'sawtooth'; osc.frequency.value = midiToFreq(ev.midi);
+        const vibrato = off.createOscillator(); vibrato.type = 'sine'; vibrato.frequency.value = params.vibratoRate;
+        const vibratoDepth = off.createGain(); vibratoDepth.gain.value = 0;
+        vibratoDepth.gain.setValueAtTime(0, ev.time + vibratoDelay);
+        vibratoDepth.gain.linearRampToValueAtTime(params.vibratoDepth, ev.time + vibratoDelay + 0.08);
+        vibrato.connect(vibratoDepth); vibratoDepth.connect(osc.detune);
+        osc.start(ev.time); vibrato.start(ev.time);
+
+        const dest = getDestinationsForMidi(ev.midi);
+        const gains = {};
+        // EXTRA del emulador: mismo balance Lower/Upper que en directo
+        const zoneVol = (ev.midi < params.splitPoint ? params.lowerVolume : params.upperVolume) / 10;
+        if (dest.strings){
+          const g = off.createGain();
+          g.gain.setValueAtTime(0, ev.time);
+          g.gain.linearRampToValueAtTime(0.22 * zoneVol, ev.time + stringsAttack);
+          osc.connect(g); g.connect(oStringsInput);
+          gains.strings = g;
+        }
+        if (dest.choir){
+          const g = off.createGain();
+          g.gain.setValueAtTime(0, ev.time);
+          g.gain.linearRampToValueAtTime(0.22 * zoneVol, ev.time + choirAttack);
+          osc.connect(g); g.connect(dest.choir === 'lower' ? oChoirLower.input : oChoirUpper.input);
+          gains.choir = g;
+        }
+        active.set(ev.midi, { osc, gains, vibrato });
+      } else {
+        const v = active.get(ev.midi);
+        if (!v) return;
+        if (v.gains.strings){
+          v.gains.strings.gain.setValueAtTime(0.22, ev.time);
+          v.gains.strings.gain.linearRampToValueAtTime(0, ev.time + release);
+        }
+        if (v.gains.choir){
+          v.gains.choir.gain.setValueAtTime(0.22, ev.time);
+          v.gains.choir.gain.linearRampToValueAtTime(0, ev.time + release);
+        }
+        const stopAt = ev.time + release + 0.05;
+        v.osc.stop(stopAt); v.vibrato.stop(stopAt);
+        active.delete(ev.midi);
+      }
+    });
+    // notas que sigan sonando al terminar el archivo: soltarlas al final
+    active.forEach((v) => {
+      const endTime = totalSec - release - 0.1;
+      if (v.gains.strings){
+        v.gains.strings.gain.setValueAtTime(0.22, endTime);
+        v.gains.strings.gain.linearRampToValueAtTime(0, endTime + release);
+      }
+      if (v.gains.choir){
+        v.gains.choir.gain.setValueAtTime(0.22, endTime);
+        v.gains.choir.gain.linearRampToValueAtTime(0, endTime + release);
+      }
+      v.osc.stop(totalSec); v.vibrato.stop(totalSec);
+    });
+
+    try {
+      const rendered = await off.startRendering();
+      const blob = audioBufferToWav(rendered);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = (midiFileName.replace(/\.[^.]+$/, '') || 'vp330-export') + '.wav';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      statusEl.textContent = 'WAV exportado \u2713';
+    } catch (err){
+      statusEl.textContent = 'Error al exportar: ' + err.message;
+    }
+  }
+
+  // ============================================================
+  //  UI: helpers gen\u00e9ricos
+  // ============================================================
+  function setRocker(el, on){
+    el.classList.toggle('on', on);
+  }
+
+  // ============================================================
+  //  Selector de entrada de micr\u00f3fono (tarjetas con varias entradas)
+  // ============================================================
+  async function refreshMicDeviceList(){
+    const sel = document.getElementById('micDeviceSelect');
+    if (!sel || !navigator.mediaDevices?.enumerateDevices) return;
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const inputs = devices.filter((d) => d.kind === 'audioinput');
+      const prevValue = sel.value;
+      sel.innerHTML = '';
+      const defaultOpt = document.createElement('option');
+      defaultOpt.value = '';
+      defaultOpt.textContent = 'Predeterminada';
+      sel.appendChild(defaultOpt);
+      inputs.forEach((d, i) => {
+        const opt = document.createElement('option');
+        opt.value = d.deviceId;
+        // hasta que no se conceda permiso, el navegador no expone d.label:
+        // mostramos un nombre gen\u00e9rico en ese caso
+        opt.textContent = d.label || `Entrada ${i + 1}`;
+        sel.appendChild(opt);
+      });
+      // si el dispositivo elegido antes sigue existiendo, lo mantenemos seleccionado
+      if ([...sel.options].some((o) => o.value === prevValue)) sel.value = prevValue;
+    } catch (err){
+      console.warn('No se pudo enumerar dispositivos de audio:', err);
+    }
+  }
+  // la lista inicial sale sin nombres reales (sin permiso concedido todav\u00eda);
+  // se refresca sola en cuanto el usuario activa el mic la primera vez
+  refreshMicDeviceList();
+  navigator.mediaDevices?.addEventListener?.('devicechange', refreshMicDeviceList);
+
+  function applyEnsembleDepth(){
+    if (!ensembleWet) return;
+    const now = ctx.currentTime;
+    ensembleWet.gain.cancelScheduledValues(now);
+    ensembleWet.gain.setTargetAtTime(params.ensembleDepth, now, 0.02);
+    ensembleDry.gain.cancelScheduledValues(now);
+    ensembleDry.gain.setTargetAtTime(1 - params.ensembleDepth * 0.5, now, 0.02);
+  }
+
+  function rotateKnob(id, min, max, val){
+    const pct = (val - min) / (max - min);
+    const deg = -135 + pct * 270;
+    const el = document.getElementById('ind-' + id);
+    if (el) el.style.transform = `translateX(-50%) rotate(${deg}deg)`;
+  }
+
+  // ============================================================
+  //  TECLADO MIDI EXTERNO (Web MIDI API)
+  // ============================================================
+  let midiAccess = null;
+  let activeMidiInput = null;
+  const midiHeldNotes = new Set(); // notas que llegaron por MIDI, para soltarlas bien si cambia de dispositivo
+
+  function setMidiStatus(text, live){
+    const dot = document.getElementById('midiInDot');
+    const label = document.getElementById('midiInStatus');
+    if (dot) dot.classList.toggle('live', !!live);
+    if (label) label.textContent = text;
+  }
+
+  function highlightKey(midi, on){
+    const el = document.querySelector(`[data-midi="${midi}"]`);
+    if (el) el.classList.toggle('active', on);
+  }
+
+  function onMidiMessage(e){
+    if (!ctx) return; // el sintetizador tiene que estar encendido (Power on)
+    const [status, data1, data2] = e.data;
+    const command = status & 0xf0;
+
+    // sustain pedal (CC 64) — lo tratamos igual que el bot\u00f3n Hold
+    if (command === 0xB0 && data1 === 64){
+      const pedalDown = data2 >= 64;
+      if (!pedalDown && holdOn){
+        // al soltar el pedal, apagamos todo lo que segu\u00eda sonando por hold
+        heldToggle.forEach((m) => { noteOff(m); highlightKey(m, false); });
+        heldToggle.clear();
+      }
+      return;
+    }
+
+    const midi = data1;
+    const velocity = data2;
+    const isNoteOn = command === 0x90 && velocity > 0;
+    const isNoteOff = command === 0x80 || (command === 0x90 && velocity === 0);
+
+    if (isNoteOn){
+      if (holdOn){
+        if (heldToggle.has(midi)){ heldToggle.delete(midi); noteOff(midi); highlightKey(midi, false); }
+        else { heldToggle.add(midi); noteOn(midi); highlightKey(midi, true); }
+      } else {
+        noteOn(midi);
+        midiHeldNotes.add(midi);
+        highlightKey(midi, true);
+      }
+    } else if (isNoteOff){
+      midiHeldNotes.delete(midi);
+      if (!holdOn){
+        noteOff(midi);
+        highlightKey(midi, false);
+      }
+    }
+  }
+
+  function attachMidiInput(input){
+    if (activeMidiInput) activeMidiInput.onmidimessage = null;
+    activeMidiInput = input || null;
+    if (activeMidiInput){
+      activeMidiInput.onmidimessage = onMidiMessage;
+      setMidiStatus(activeMidiInput.name || 'Dispositivo MIDI', true);
+    } else {
+      setMidiStatus('Ning\u00fan dispositivo seleccionado', false);
+    }
+  }
+
+  function refreshMidiDeviceList(){
+    const sel = document.getElementById('midiDeviceSelect');
+    if (!sel || !midiAccess) return;
+    const prevValue = sel.value;
+    sel.innerHTML = '';
+    const inputs = [...midiAccess.inputs.values()];
+    if (!inputs.length){
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = 'Sin dispositivos';
+      sel.appendChild(opt);
+      attachMidiInput(null);
+      return;
+    }
+    inputs.forEach((inp) => {
+      const opt = document.createElement('option');
+      opt.value = inp.id;
+      opt.textContent = inp.name || inp.id;
+      sel.appendChild(opt);
+    });
+    // mantenemos la selecci\u00f3n previa si el dispositivo sigue conectado;
+    // si no, nos conectamos autom\u00e1ticamente al primero disponible
+    const stillThere = inputs.some((inp) => inp.id === prevValue);
+    sel.value = stillThere ? prevValue : inputs[0].id;
+    attachMidiInput(inputs.find((inp) => inp.id === sel.value));
+  }
+
+  function initWebMidi(){
+    if (!navigator.requestMIDIAccess){
+      setMidiStatus('Web MIDI no soportado en este navegador', false);
+      return;
+    }
+    navigator.requestMIDIAccess({ sysex: false }).then((access) => {
+      midiAccess = access;
+      refreshMidiDeviceList();
+      midiAccess.onstatechange = refreshMidiDeviceList;
+    }).catch((err) => {
+      setMidiStatus('Permiso MIDI denegado', false);
+      console.warn('No se pudo acceder a Web MIDI:', err);
+    });
+  }
+
+  document.getElementById('midiDeviceSelect').addEventListener('change', (e) => {
+    if (!midiAccess) return;
+    const input = [...midiAccess.inputs.values()].find((inp) => inp.id === e.target.value);
+    attachMidiInput(input || null);
+  });
+
+  initWebMidi();
+
+  // ============================================================
+  //  TECLADO EN PANTALLA
+  // ============================================================
+  const KB_START = 48; // C3
+  const KB_OCTAVES = 2;
+  const WHITE_OFFSETS = [0, 2, 4, 5, 7, 9, 11];
+  const BLACK_AFTER = { 0: 1, 1: 3, 3: 6, 4: 8, 5: 10 }; // index en escala blanca -> semitono negro
+
+  let whiteKeyList = []; // [{midi, index}] usado para posicionar el marcador de split
+
+  function buildKeyboardUI(){
+    const kb = document.getElementById('keyboard');
+    kb.innerHTML = '';
+    const totalWhite = WHITE_OFFSETS.length * KB_OCTAVES + 1;
+    const whiteWidthPct = 100 / totalWhite;
+    whiteKeyList = [];
+
+    let whiteIndex = 0;
+    for (let oct = 0; oct <= KB_OCTAVES; oct++){
+      const maxI = oct === KB_OCTAVES ? 1 : WHITE_OFFSETS.length;
+      for (let i = 0; i < maxI; i++){
+        const midi = KB_START + oct * 12 + WHITE_OFFSETS[i];
+        const key = document.createElement('div');
+        key.className = 'white-key';
+        key.dataset.midi = midi;
+        bindKey(key, midi);
+        kb.appendChild(key);
+        whiteKeyList.push({ midi, index: whiteIndex, pct: whiteIndex * whiteWidthPct });
+
+        if (oct < KB_OCTAVES && BLACK_AFTER[i] !== undefined){
+          const blackMidi = KB_START + oct * 12 + BLACK_AFTER[i];
+          const bk = document.createElement('div');
+          bk.className = 'black-key';
+          bk.dataset.midi = blackMidi;
+          bk.style.left = `calc(${(whiteIndex + 1) * whiteWidthPct}% - ${whiteWidthPct * 0.28}%)`;
+          bindKey(bk, blackMidi);
+          kb.appendChild(bk);
+        }
+        whiteIndex++;
+      }
+    }
+
+    const marker = document.createElement('div');
+    marker.className = 'split-marker';
+    marker.id = 'splitMarker';
+    kb.appendChild(marker);
+    updateSplitMarker();
+  }
+
+  function updateSplitMarker(){
+    const marker = document.getElementById('splitMarker');
+    if (!marker) return;
+    marker.classList.add('visible'); // el teclado siempre est\u00e1 dividido
+    if (!whiteKeyList.length) return;
+    const nearest = whiteKeyList.find((w) => w.midi >= params.splitPoint) || whiteKeyList[whiteKeyList.length - 1];
+    marker.style.left = nearest.pct + '%';
+  }
+
+  function bindKey(el, midi){
+    const press = (e) => {
+      e.preventDefault();
+      if (!ctx) return;
+      if (holdOn){
+        if (heldToggle.has(midi)){
+          heldToggle.delete(midi); noteOff(midi); el.classList.remove('active');
+        } else {
+          heldToggle.add(midi); noteOn(midi); el.classList.add('active');
+        }
+      } else {
+        noteOn(midi); el.classList.add('active');
+      }
+    };
+    const release = (e) => {
+      if (!ctx || holdOn) return;
+      noteOff(midi); el.classList.remove('active');
+    };
+    el.addEventListener('mousedown', press);
+    el.addEventListener('mouseup', release);
+    el.addEventListener('mouseleave', release);
+    el.addEventListener('touchstart', press, { passive: false });
+    el.addEventListener('touchend', release);
+  }
+
+  const KEY_MAP = {
+    'a': 60, 'w': 61, 's': 62, 'e': 63, 'd': 64, 'f': 65, 't': 66,
+    'g': 67, 'y': 68, 'h': 69, 'u': 70, 'j': 71, 'k': 72, 'o': 73,
+    'l': 74, 'p': 75
+  };
+  const OCTAVE_MIN = -3, OCTAVE_MAX = 3;
+  let octaveShift = 0;
+  const kbState = new Map(); // tecla f\u00edsica -> midi que realmente suena (para soltar bien aunque cambie la octava)
+
+  function setOctaveShift(delta){
+    const next = Math.max(OCTAVE_MIN, Math.min(OCTAVE_MAX, octaveShift + delta));
+    if (next === octaveShift) return;
+    octaveShift = next;
+    const el = document.getElementById('octaveVal');
+    if (el) el.textContent = (octaveShift > 0 ? '+' : '') + octaveShift;
+  }
+
+  window.addEventListener('keydown', (e) => {
+    if (e.repeat) return;
+    const key = e.key.toLowerCase();
+    if (key === 'z'){ setOctaveShift(-1); return; }
+    if (key === 'x'){ setOctaveShift(1); return; }
+    if (!ctx) return;
+    const base = KEY_MAP[key];
+    if (base === undefined || kbState.has(key)) return;
+    const midi = base + octaveShift * 12;
+    kbState.set(key, midi);
+    noteOn(midi);
+    const el = document.querySelector(`[data-midi="${midi}"]`);
+    if (el) el.classList.add('active');
+  });
+  window.addEventListener('keyup', (e) => {
+    if (!ctx) return;
+    const key = e.key.toLowerCase();
+    const midi = kbState.get(key);
+    if (midi === undefined) return;
+    kbState.delete(key);
+    if (!holdOn){
+      noteOff(midi);
+      const el = document.querySelector(`[data-midi="${midi}"]`);
+      if (el) el.classList.remove('active');
+    }
+  });
+
+  // ============================================================
+  //  MEDIDOR LED DEL VOCODER
+  // ============================================================
+  const SEGMENTS = 12;
+  function buildMeterUI(){
+    const meter = document.getElementById('meter');
+    const freqRow = document.getElementById('bandFreqs');
+    meter.innerHTML = '';
+    freqRow.innerHTML = '';
+    for (let i = 0; i < NUM_BANDS; i++){
+      const col = document.createElement('div');
+      col.className = 'band-col';
+      const segs = [];
+      for (let s = 0; s < SEGMENTS; s++){
+        const seg = document.createElement('div');
+        seg.className = 'led-seg';
+        col.appendChild(seg);
+        segs.push(seg);
+      }
+      meter.appendChild(col);
+      bandNodes[i].ledEls = segs;
+
+      const label = document.createElement('span');
+      label.textContent = BAND_FREQS[i] >= 1000 ? (BAND_FREQS[i] / 1000).toFixed(1) + 'k' : BAND_FREQS[i];
+      freqRow.appendChild(label);
+    }
+    requestAnimationFrame(animateMeter);
+  }
+
+  const timeBuf = new Float32Array(256);
+  function animateMeter(){
+    for (let i = 0; i < bandNodes.length; i++){
+      const b = bandNodes[i];
+      b.analyser.getFloatTimeDomainData(timeBuf);
+      let peak = 0;
+      for (let s = 0; s < timeBuf.length; s++) peak = Math.max(peak, Math.abs(timeBuf[s]));
+      b.level = b.level * 0.65 + peak * 0.35; // suavizado visual
+      const lit = Math.round(Math.min(1, b.level * 6) * SEGMENTS);
+      b.ledEls.forEach((seg, idx) => {
+        const on = idx < lit;
+        seg.classList.toggle('lit', on);
+        seg.classList.toggle('hot', on && idx > SEGMENTS - 3);
+      });
+    }
+    requestAnimationFrame(animateMeter);
+  }
+
+  // ============================================================
+  //  WIRING DE CONTROLES
+  // ============================================================
+  function updateMidiUI(){
+    const playBtn = document.getElementById('midiPlay');
+    const stopBtn = document.getElementById('midiStop');
+    const exportBtn = document.getElementById('midiExport');
+    const status = document.getElementById('midiStatus');
+    const ready = !!ctx && !!midiData;
+    playBtn.disabled = !ready || isPlaying;
+    stopBtn.disabled = !isPlaying;
+    exportBtn.disabled = !ready || isPlaying;
+    if (midiData){
+      status.textContent = `${midiFileName} \u2014 ${midiData.noteEvents.filter((e) => e.type === 'on').length} notas, ${midiData.duration.toFixed(1)}s${isPlaying ? ' \u2014 reproduciendo\u2026' : ''}`;
+    }
+  }
+
+  function wireControls(){
+    document.getElementById('midiFile').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const buf = await file.arrayBuffer();
+        midiData = parseMidiFile(buf);
+        midiFileName = file.name;
+        stopMidi();
+        updateMidiUI();
+      } catch (err){
+        midiData = null;
+        document.getElementById('midiStatus').textContent = 'Error al leer el MIDI: ' + err.message;
+        updateMidiUI();
+      }
+    });
+    document.getElementById('midiPlay').addEventListener('click', () => {
+      if (!ctx){ alert('Pulsa primero Power on'); return; }
+      playMidi();
+    });
+    document.getElementById('midiStop').addEventListener('click', stopMidi);
+    document.getElementById('midiExport').addEventListener('click', exportMidiToWav);
+
+    document.getElementById('toggleHold').addEventListener('click', (e) => {
+      holdOn = !holdOn;
+      setRocker(e.currentTarget, holdOn);
+      if (!holdOn){
+        heldToggle.forEach((m) => noteOff(m));
+        heldToggle.clear();
+        document.querySelectorAll('.white-key.active,.black-key.active').forEach((el) => el.classList.remove('active'));
+      }
+    });
+    document.getElementById('toggleMic').addEventListener('click', async (e) => {
+      if (!ctx){ return; }
+      const btn = e.currentTarget; // guardamos la referencia ANTES del await:
+                                    // e.currentTarget se vuelve null despu\u00e9s de que
+                                    // termina el despacho s\u00edncrono del evento
+      if (micOn){
+        // apagar: desconectar el nodo de audio y cortar los tracks del
+        // stream (esto tambi\u00e9n apaga el indicador de "usando el mic" del
+        // navegador/SO, no solo el volumen)
+        if (micSourceNode) micSourceNode.disconnect();
+        if (micStream) micStream.getTracks().forEach((t) => t.stop());
+        micSourceNode = null;
+        micStream = null;
+        micOn = false;
+        setRocker(btn, false);
+        btn.style.opacity = 0.5;
+        updateBalanceLevels();
+        updateVocoderBypassLevel();
+        const red = document.getElementById('vocoderMicLedRed');
+        const green = document.getElementById('vocoderMicLedGreen');
+        if (red) red.style.background = '#5a2f2f';
+        if (green) green.style.background = '#2f5a35';
+        return;
+      }
+      const selectedDeviceId = document.getElementById('micDeviceSelect')?.value || '';
+      // Para un instrumento musical (vocoder con notas sostenidas) hay que
+      // desactivar TODO el procesamiento autom\u00e1tico de voz del navegador:
+      // - autoGainControl: el AGC va subiendo/bajando la ganancia del mic
+      //   solo, y en un sostenido puede "pelear" contra s\u00ed mismo (sube, se
+      //   pasa, corta, vuelve a subir m\u00e1s bajo...) \u2014 exactamente el patr\u00f3n
+      //   de "se cae y vuelve con menos volumen" que describ\u00eds.
+      // - echoCancellation: est\u00e1 pensado para llamadas, para cancelar lo que
+      //   sale por los parlantes y vuelve a entrar al mic. Si est\u00e1s tocando
+      //   con parlantes (no auriculares), puede confundir el propio sonido
+      //   del vocoder con "eco" y atenuarlo a mitad de nota.
+      // - noiseSuppression: ya estaba apagado, tambi\u00e9n distorsiona la se\u00f1al.
+      const audioConstraints = { echoCancellation: false, noiseSuppression: false, autoGainControl: false };
+      if (selectedDeviceId) audioConstraints.deviceId = { exact: selectedDeviceId };
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraints });
+        const micSource = ctx.createMediaStreamSource(stream);
+        micStream = stream;
+        micSourceNode = micSource;
+        connectMicToVocoder(micSource);
+        micOn = true;
+        setRocker(btn, true);
+        btn.style.opacity = 1;
+        // ahora que hay permiso concedido, enumerateDevices ya devuelve
+        // los nombres reales de las entradas en vez de gen\u00e9ricos
+        refreshMicDeviceList();
+      } catch (err){
+        alert('No se pudo acceder al micr\u00f3fono: ' + err.message);
+      }
+    });
+
+    const SPLIT_POINTS = [53, 57, 60, 64, 67]; // F3, A3, C4, E4, G4
+    document.getElementById('splitPoint').addEventListener('input', (e) => {
+      params.splitPoint = SPLIT_POINTS[parseInt(e.target.value, 10)];
+      updateSplitMarker();
+    });
+    // Lower/Upper independientes por secci\u00f3n: cada toggle solo cambia el
+    // par\u00e1metro correspondiente, sin afectar a los dem\u00e1s (a diferencia de la
+    // asignaci\u00f3n exclusiva anterior)
+    const splitToggles = [
+      ['toggleStringsLower', 'stringsLower'], ['toggleStringsUpper', 'stringsUpper'],
+      ['toggleChoirLower', 'choirLower'], ['toggleChoirUpper', 'choirUpper'],
+      ['toggleVocoderLower', 'vocoderLower'], ['toggleVocoderUpper', 'vocoderUpper']
+    ];
+    splitToggles.forEach(([id, key]) => {
+      document.getElementById(id).addEventListener('click', (e) => {
+        params[key] = !params[key];
+        setRocker(e.currentTarget, params[key]);
+        updateBalanceLevels();
+        updateVocoderBypassLevel();
+      });
+    });
+    // Voz de Human Voice: dos grupos independientes (Lower / Upper), cada uno
+    // con interlock tipo radio (al elegir una opci\u00f3n del grupo, se apaga la
+    // otra del mismo grupo) \u2014 pero Lower y Upper suenan simult\u00e1neamente
+    // entre s\u00ed, sin exclusi\u00f3n mutua entre grupos (confirmado en el manual).
+    const voiceGroups = [
+      { paramKey: 'choirVariantLower', chain: () => choirChainLower, tabs: [['voiceLowerMale8', 0], ['voiceLowerMale4', 1]] },
+      { paramKey: 'choirVariantUpper', chain: () => choirChainUpper, tabs: [['voiceUpperMale8', 2], ['voiceUpperFemale4', 3]] }
+    ];
+    voiceGroups.forEach((group) => {
+      group.tabs.forEach(([id, variantIdx]) => {
+        document.getElementById(id).addEventListener('click', () => {
+          params[group.paramKey] = variantIdx;
+          group.tabs.forEach(([otherId, otherIdx]) => {
+            document.getElementById(otherId).classList.toggle('on', otherIdx === variantIdx);
+          });
+          if (ctx) updateChoirVariant(group.chain(), variantIdx);
+        });
+      });
+    });
+    document.getElementById('toggleChoirEnsemble').addEventListener('click', (e) => {
+      const on = !params.choirToEnsemble;
+      setRocker(e.currentTarget, on);
+      setEnsembleSend('choirToEnsemble', on);
+    });
+    document.getElementById('toggleVocoderEnsemble').addEventListener('click', (e) => {
+      const on = !params.vocoderToEnsemble;
+      setRocker(e.currentTarget, on);
+      setEnsembleSend('vocoderToEnsemble', on);
+    });
+
+    bindSlider('attack', (v) => { params.attackMs = v; document.getElementById('val-attack').textContent = v + ' ms'; }, 60);
+    bindSlider('release', (v) => { params.releaseMs = v; document.getElementById('val-release').textContent = v + ' ms'; }, 280);
+    bindSlider('stringsAttack', (v) => { params.stringsAttackMs = v; document.getElementById('val-stringsAttack').textContent = v + ' ms'; }, 40);
+    bindSlider('balanceMic', (v) => {
+      params.balanceMic = v;
+      document.getElementById('val-balanceMic').textContent = v.toFixed(1);
+      updateBalanceLevels();
+    }, 6);
+    bindSlider('balanceChoir', (v) => {
+      params.balanceChoir = v;
+      document.getElementById('val-balanceChoir').textContent = v.toFixed(1);
+      updateBalanceLevels();
+    }, 8);
+    bindSlider('balanceStrings', (v) => {
+      params.balanceStrings = v;
+      document.getElementById('val-balanceStrings').textContent = v.toFixed(1);
+      updateBalanceLevels();
+    }, 8);
+    bindSlider('ensemble', (v) => {
+      params.ensembleDepth = v / 100;
+      document.getElementById('val-ensemble').textContent = v + '%';
+      applyEnsembleDepth();
+    }, 55, true);
+    bindSlider('tone', (v) => {
+      params.toneCutoff = 600 + (v / 100) * 8400; // 600 Hz .. 9000 Hz
+      document.getElementById('val-tone').textContent = v + '%';
+      if (toneFilter){ toneFilter.frequency.cancelScheduledValues(ctx.currentTime); toneFilter.frequency.setTargetAtTime(params.toneCutoff, ctx.currentTime, 0.02); }
+    }, 100, true);
+    bindSlider('vibratoRate', (v) => {
+      params.vibratoRate = v;
+      document.getElementById('val-vibratoRate').textContent = v.toFixed(1) + ' Hz';
+      activeVoices.forEach((voice) => { voice.vibrato.frequency.cancelScheduledValues(ctx.currentTime); voice.vibrato.frequency.setTargetAtTime(v, ctx.currentTime, 0.02); });
+    }, 5.3);
+    bindSlider('vibratoDelay', (v) => {
+      params.vibratoDelayMs = v;
+      document.getElementById('val-vibratoDelay').textContent = v + ' ms';
+    }, 150);
+    bindSlider('vibratoDepth', (v) => {
+      params.vibratoDepth = v;
+      document.getElementById('val-vibratoDepth').textContent = v + ' ct';
+      activeVoices.forEach((voice) => { voice.vibratoDepth.gain.cancelScheduledValues(ctx.currentTime); voice.vibratoDepth.gain.setTargetAtTime(v, ctx.currentTime, 0.02); });
+    }, 2.2);
+    bindSlider('vocoderTone', (v) => {
+      params.vocoderTone = v;
+      document.getElementById('val-vocoderTone').textContent = v + '%';
+      // 100% ~9kHz (brillante) .. 0% ~500Hz (apagado), como el barrido del panel real
+      const freq = 500 + (v / 100) * 8500;
+      if (vocoderChain?.toneFilter){ vocoderChain.toneFilter.frequency.cancelScheduledValues(ctx.currentTime); vocoderChain.toneFilter.frequency.setTargetAtTime(freq, ctx.currentTime, 0.02); }
+    }, 70, true);
+    bindSlider('lowerVolume', (v) => {
+      params.lowerVolume = v;
+      document.getElementById('val-lowerVolume').textContent = v.toFixed(1);
+      updateZoneVolume();
+    }, 10);
+    bindSlider('upperVolume', (v) => {
+      params.upperVolume = v;
+      document.getElementById('val-upperVolume').textContent = v.toFixed(1);
+      updateZoneVolume();
+    }, 10);
+    bindSlider('vocoderMicLevel', (v) => {
+      params.vocoderMicLevel = v;
+      document.getElementById('val-vocoderMicLevel').textContent = v.toFixed(1);
+      // 0..10 del fader -> 0..3 de ganancia real, aprox.
+      if (vocoderMicGain){ vocoderMicGain.gain.cancelScheduledValues(ctx.currentTime); vocoderMicGain.gain.setTargetAtTime(v / 10 * 3, ctx.currentTime, 0.02); }
+    }, 6);
+    bindSlider('noisegate', (v) => {
+      document.getElementById('val-noisegate').textContent = v + '%';
+      updateNoiseGate(v / 100);
+    }, 1.5, true);
+    bindSlider('noisemix', (v) => {
+      params.noiseMix = v / 100;
+      document.getElementById('val-noisemix').textContent = v + '%';
+      if (noiseGain){ noiseGain.gain.cancelScheduledValues(ctx.currentTime); noiseGain.gain.setTargetAtTime(params.noiseMix, ctx.currentTime, 0.02); }
+    }, 15, true);
+    bindSlider('sens', (v) => {
+      params.sensitivity = v;
+      document.getElementById('val-sens').textContent = v;
+      if (bandNodes.length) bandNodes.forEach((b) => {
+        b.envMakeup.gain.cancelScheduledValues(ctx.currentTime);
+        b.envMakeup.gain.setTargetAtTime(v, ctx.currentTime, 0.02);
+      });
+    }, 4);
+    bindSlider('master', (v) => {
+      params.masterVol = v / 100;
+      document.getElementById('val-master').textContent = v + '%';
+      if (masterGain){ masterGain.gain.cancelScheduledValues(ctx.currentTime); masterGain.gain.setTargetAtTime(params.masterVol, ctx.currentTime, 0.02); }
+    }, 70, true);
+
+    bindSlider('delayTime', (v) => {
+      params.delayTimeMs = v;
+      document.getElementById('val-delayTime').textContent = v + ' ms';
+      if (pingPongFX){
+        const now = ctx.currentTime;
+        pingPongFX.delayL.delayTime.cancelScheduledValues(now);
+        pingPongFX.delayL.delayTime.setTargetAtTime(v / 1000, now, 0.02);
+        pingPongFX.delayR.delayTime.cancelScheduledValues(now);
+        pingPongFX.delayR.delayTime.setTargetAtTime(v / 1000, now, 0.02);
+      }
+    }, 350);
+    bindSlider('delayFeedback', (v) => {
+      params.delayFeedback = v;
+      document.getElementById('val-delayFeedback').textContent = v + '%';
+      if (pingPongFX){
+        const now = ctx.currentTime;
+        pingPongFX.feedbackL.gain.cancelScheduledValues(now);
+        pingPongFX.feedbackL.gain.setTargetAtTime(v / 100, now, 0.02);
+        pingPongFX.feedbackR.gain.cancelScheduledValues(now);
+        pingPongFX.feedbackR.gain.setTargetAtTime(v / 100, now, 0.02);
+      }
+    }, 35, true);
+    bindSlider('delayMix', (v) => {
+      params.delayMix = v;
+      document.getElementById('val-delayMix').textContent = v + '%';
+      if (pingPongFX){ pingPongFX.wet.gain.cancelScheduledValues(ctx.currentTime); pingPongFX.wet.gain.setTargetAtTime(v / 100, ctx.currentTime, 0.02); }
+    }, 0, true);
+
+    bindSlider('reverbSize', (v) => {
+      params.reverbSize = v;
+      document.getElementById('val-reverbSize').textContent = v.toFixed(1) + ' s';
+      if (reverbFX) reverbFX.convolver.buffer = makeImpulseResponse(v, 2.2);
+    }, 2.2);
+    bindSlider('reverbTone', (v) => {
+      params.reverbTone = v;
+      document.getElementById('val-reverbTone').textContent = (v / 1000).toFixed(1) + 'k';
+      if (reverbFX){ reverbFX.damp.frequency.cancelScheduledValues(ctx.currentTime); reverbFX.damp.frequency.setTargetAtTime(v, ctx.currentTime, 0.02); }
+    }, 6000);
+    bindSlider('reverbMix', (v) => {
+      params.reverbMix = v;
+      document.getElementById('val-reverbMix').textContent = v + '%';
+      if (reverbFX){ reverbFX.wet.gain.cancelScheduledValues(ctx.currentTime); reverbFX.wet.gain.setTargetAtTime(v / 100, ctx.currentTime, 0.02); }
+    }, 0, true);
+
+    bindSlider('pitchTime', (v) => {
+      params.pitchTimeMs = v;
+      document.getElementById('val-pitchTime').textContent = v + ' ms';
+    }, 400);
+    bindSlider('pitchTune', (v) => {
+      params.pitchTuneCents = v;
+      document.getElementById('val-pitchTune').textContent = (v > 0 ? '+' : '') + v + ' ct';
+    }, 0);
+    bindSlider('pitchSet', (v) => {
+      params.pitchSetSemitones = v;
+      document.getElementById('val-pitchSet').textContent = v + ' st';
+      updatePitchManual();
+    }, 4);
+    bindSlider('pitchShift', (v) => {
+      params.pitchManualAmount = v / 100;
+      document.getElementById('val-pitchShift').textContent = v === 0 ? 'Normal' : 'Down ' + v + '%';
+      updatePitchManual();
+    }, 0, true);
+    // modo de Pitch Shift: radio-group de 3 (Auto / Off / Manual), como el
+    // switch de 3 posiciones del panel real
+    const pitchModeTabs = [['pitchModeAuto', 'auto'], ['pitchModeOff', 'off'], ['pitchModeManual', 'manual']];
+    pitchModeTabs.forEach(([id, mode]) => {
+      document.getElementById(id).addEventListener('click', () => {
+        params.pitchMode = mode;
+        pitchModeTabs.forEach(([otherId, otherMode]) => {
+          document.getElementById(otherId).classList.toggle('on', otherMode === mode);
+        });
+        updatePitchManual();
+      });
+    });
+  }
+
+  function bindSlider(id, onChange, initVal, isPct){
+    const el = document.getElementById(id);
+    const min = parseFloat(el.min), max = parseFloat(el.max);
+    rotateKnob(id, min, max, initVal);
+    el.addEventListener('input', () => {
+      const v = parseFloat(el.value);
+      rotateKnob(id, min, max, v);
+      onChange(v);
+    });
+  }
+
+  // ============================================================
+  //  POWER ON
+  // ============================================================
+  document.getElementById('powerBtn').addEventListener('click', (e) => {
+    if (ctx) return;
+    initAudio();
+    buildKeyboardUI();
+    e.currentTarget.disabled = true;
+    e.currentTarget.textContent = 'Encendido';
+    document.getElementById('powerDot').classList.add('live');
+    document.getElementById('powerLabel').textContent = 'En l\u00ednea';
+    document.getElementById('toggleMic').style.opacity = 1;
+    updateMidiUI();
+  });
+
+  wireControls();
+})();
+</script>
+</body>
+</html>
