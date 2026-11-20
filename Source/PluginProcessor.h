@@ -131,6 +131,7 @@ public:
     static constexpr int kSplitPoints[5] = { 53, 57, 60, 64, 67 };
 
 private:
+    static BusesProperties makeBuses();
     void timerCallback() override;
     void applyAllParams();
     void applyChangedParams();

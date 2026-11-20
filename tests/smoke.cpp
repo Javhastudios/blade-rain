@@ -161,6 +161,25 @@ int main (int argc, char** argv)
     for (int k = 0; k < 40; ++k) { b2.clear(); proc2->processBlock (b2, m2); m2.clear(); e2 += b2.getRMSLevel (0, 0, 256); }
     CHECK (e2 > 0.1, "suena a 44,1 kHz sin entrada de audio");
 
+    std::cout << "app independiente\n";
+    {
+        // la ventana standalone de JUCE solo abre las entradas del bus principal
+        PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_Standalone;
+        auto sa = std::make_unique<BladeRainProcessor>();
+        PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_Undefined;
+        CHECK (sa->getMainBusNumInputChannels() == 2, "como app, el micro va por la entrada principal (" << sa->getMainBusNumInputChannels() << " canales)");
+        sa->setRateAndBufferSizeDetails (48000, 512);
+        sa->prepareToPlay (48000, 512);
+        sa->setParam (pid::stringsLower, 0); sa->setParam (pid::stringsUpper, 0);
+        sa->setParam (pid::choirLower, 0); sa->setParam (pid::choirUpper, 0);
+        sa->setParam (pid::vocoderLower, 1); sa->setParam (pid::vocoderUpper, 1);
+        sa->setParam (pid::balanceMic, 0);
+        sa->setParam (pid::mic, 1);
+        run (*sa, 4, { on (48) });
+        auto v = run (*sa, 60, {}, true);
+        CHECK (v.rms > 0.005, "como app, el vocoder suena con el micro (rms " << v.rms << ")");
+    }
+
     std::cout << "interfaz\n";
     {
         proc->setParam (pid::mic, 1);

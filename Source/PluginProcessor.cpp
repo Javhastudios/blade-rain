@@ -68,13 +68,25 @@ AudioProcessorValueTreeState::ParameterLayout createLayout()
 } // namespace
 
 //==============================================================================
+// Entradas de audio para el micro del vocoder:
+//  - En el DAW, por un bus de sidechain (así se lo ofrecen los DAW a los instrumentos); la
+//    entrada principal existe pero va desactivada.
+//  - En la app independiente, por la entrada principal: la ventana standalone de JUCE solo
+//    abre los canales de entrada del bus principal.
+AudioProcessor::BusesProperties BladeRainProcessor::makeBuses()
+{
+    if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone)
+        return BusesProperties()
+            .withInput ("Mic", AudioChannelSet::stereo(), true)
+            .withOutput ("Output", AudioChannelSet::stereo(), true);
+    return BusesProperties()
+        .withInput ("Input", AudioChannelSet::stereo(), false)
+        .withInput ("Mic (sidechain)", AudioChannelSet::stereo(), true)
+        .withOutput ("Output", AudioChannelSet::stereo(), true);
+}
+
 BladeRainProcessor::BladeRainProcessor()
-    // El micro del vocoder entra por un bus de sidechain (así lo ofrecen los DAW a los
-    // instrumentos); la entrada principal existe pero va desactivada por defecto.
-    : AudioProcessor (BusesProperties()
-                          .withInput ("Input", AudioChannelSet::stereo(), false)
-                          .withInput ("Mic (sidechain)", AudioChannelSet::stereo(), true)
-                          .withOutput ("Output", AudioChannelSet::stereo(), true)),
+    : AudioProcessor (makeBuses()),
       apvts (*this, nullptr, "PARAMS", createLayout())
 {
     for (auto* prm : getParameters())
